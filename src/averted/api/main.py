@@ -27,7 +27,7 @@ CONSOLE = Path(__file__).resolve().parent.parent / "console"
 app = FastAPI(
     title="averted",
     version=__version__,
-    description="점검 한 번이 막은 고장을 추정한다 — 모든 데이터는 합성(SYNTHETIC)이다.",
+    description="점검 한 번이 막은 고장을 추정합니다. 모든 데이터는 합성(SYNTHETIC)입니다.",
 )
 store = Store()
 
@@ -77,7 +77,7 @@ def scenarios():
 def scenario(sid: str):
     d = store.scenario(sid)
     if d is None:
-        raise HTTPException(404, f"시나리오 없음: {sid}")
+        raise HTTPException(404, f"그런 시나리오가 없습니다: {sid}")
     return d
 
 
@@ -85,7 +85,7 @@ def scenario(sid: str):
 def scenario_policy(sid: str, k: int = Query(8, ge=1, le=64)):
     d = store.scenario(sid)
     if d is None:
-        raise HTTPException(404, f"시나리오 없음: {sid}")
+        raise HTTPException(404, f"그런 시나리오가 없습니다: {sid}")
     by_k = d["policy"]["by_k"]
     if str(k) not in by_k:
         raise HTTPException(400, f"미리 계산된 K 만 지원합니다: {d['policy']['ks']}")
@@ -101,23 +101,23 @@ def scenario_policy(sid: str, k: int = Query(8, ge=1, le=64)):
 def scenario_plan(sid: str, site: int = Query(...), week: int = Query(...), k: int = Query(8, ge=1, le=12)):
     d = store.scenario(sid)
     if d is None:
-        raise HTTPException(404, f"시나리오 없음: {sid}")
+        raise HTTPException(404, f"그런 시나리오가 없습니다: {sid}")
     for p in d["plans"]:
         if p["site"] == site and p["week"] == week:
             return {**p, "by_effect": p["by_effect"][:k], "by_risk": p["by_risk"][:k], "k": k}
-    raise HTTPException(404, "그 사이트·주의 점검표는 미리 계산되어 있지 않습니다")
+    raise HTTPException(404, "그 사이트·주의 점검표는 미리 계산해 두지 않았습니다")
 
 
 @app.get("/v1/artifacts/{name}")
 def artifact(name: str):
     d = store.artifact(name)
     if d is None:
-        raise HTTPException(404, f"산출물 없음: {name}")
+        raise HTTPException(404, f"그런 산출물이 없습니다: {name}")
     return d
 
 
 class PilotIn(BaseModel):
-    base_rate: float = Field(0.07, gt=0, lt=1, description="점검하지 않을 때의 4주 내 고장률")
+    base_rate: float = Field(0.07, gt=0, lt=1, description="점검하지 않을 때 4주 안에 고장날 비율")
     averted_pp: float = Field(1.0, gt=0, le=50, description="검출하려는 효과 (%p)")
     n_assets: int = Field(500, ge=2, le=1_000_000)
     weeks: int = Field(26, ge=4, le=520)
@@ -141,9 +141,9 @@ def pilot_plan(body: PilotIn):
 
 
 SCHEMA = [
-    {"column": "asset", "type": "int|str", "meaning": "설비 ID"},
-    {"column": "week", "type": "int", "meaning": "결정 시점(주 번호). 한 행 = 설비 × 주"},
-    {"column": "site", "type": "int", "meaning": "사이트(고객사·건물) 번호 0..S-1"},
+    {"column": "asset", "type": "int|str", "meaning": "설비 번호"},
+    {"column": "week", "type": "int", "meaning": "주 번호. 한 행은 설비 하나의 한 주입니다"},
+    {"column": "site", "type": "int", "meaning": "사이트(고객사·건물) 번호. 0부터 시작합니다"},
     {
         "column": "cat",
         "type": "str",
@@ -151,23 +151,31 @@ SCHEMA = [
     },
     {"column": "age", "type": "float", "meaning": "연식(년)"},
     {"column": "crit", "type": "int", "meaning": "중요도 1~3"},
-    {"column": "grade_last", "type": "int", "meaning": "직전 점검 판정 0 양호 / 1 주의 / 2 불량"},
-    {"column": "wsv", "type": "float", "meaning": "마지막 점검 후 경과 주 (52 로 자름)"},
-    {"column": "bd", "type": "float", "meaning": "최근 고장 가중 합 (지수 감쇠)"},
-    {"column": "cmp", "type": "float", "meaning": "최근 민원·A/S 접수 가중 합"},
-    {"column": "open_wo", "type": "0|1", "meaning": "수리 접수된 결함이 남아 있는가"},
-    {"column": "treated", "type": "0|1", "meaning": "그 주에 점검했는가 (처치)"},
+    {"column": "grade_last", "type": "int", "meaning": "직전 점검 판정. 0 양호, 1 주의, 2 불량"},
+    {"column": "wsv", "type": "float", "meaning": "마지막 점검 뒤 지난 주 수 (52주를 넘으면 52로 둡니다)"},
+    {"column": "bd", "type": "float", "meaning": "최근 고장을 더한 값 (오래된 고장일수록 작게 셉니다)"},
+    {
+        "column": "cmp",
+        "type": "float",
+        "meaning": "최근 민원·A/S 접수를 더한 값 (오래된 접수일수록 작게 셉니다)",
+    },
+    {"column": "open_wo", "type": "0|1", "meaning": "수리가 접수된 결함이 남아 있는가"},
+    {"column": "treated", "type": "0|1", "meaning": "그 주에 점검했는가"},
     {
         "column": "y",
         "type": "0|1|NaN",
-        "meaning": "그 주부터 4주 안에 비계획 고장이 있었는가 (결과). 창이 데이터 밖이면 NaN",
+        "meaning": "그 주부터 4주 안에 계획에 없던 고장이 있었는가. 4주가 데이터 기간을 넘으면 NaN",
     },
     {
         "column": "due",
         "type": "0|1",
-        "meaning": "(선택) 법정 점검 기한이라 처치가 달력으로 정해진 행 — 분석에서 빠진다",
+        "meaning": "(선택) 법정 점검 기한이라 점검 여부가 달력으로 정해진 행. 분석에서 뺍니다",
     },
-    {"column": "y_prev", "type": "0|1|NaN", "meaning": "(선택) 처치 이전 4주의 고장 — 음성 대조 결과로 쓴다"},
+    {
+        "column": "y_prev",
+        "type": "0|1|NaN",
+        "meaning": "(선택) 점검 이전 4주의 고장. 보정이 충분한지 확인하는 데 씁니다",
+    },
 ]
 
 
@@ -176,7 +184,7 @@ def schema():
     return {
         "columns": SCHEMA,
         "max_rows": MAX_AUDIT_ROWS,
-        "note": "열 이름이 다르면 LogSpec 으로 매핑한다 (docs/real-data.md)",
+        "note": "열 이름이 다르면 LogSpec 으로 맞춥니다 (docs/real-data.md)",
     }
 
 

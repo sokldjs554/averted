@@ -33,7 +33,7 @@ from ..sim.world import CATEGORIES, WorldConfig
 CAT_KO = {c.key: c.ko for c in CATEGORIES}
 POLICY_LABELS = {
     "random": "무작위",
-    "round_robin": "라운드로빈 (가장 오래 안 본 순)",
+    "round_robin": "돌아가며 (가장 오래 안 본 순)",
     "risk": "위험순 (고장 예측 모형)",
     "risk_rule": "위험순 + 수리 접수 제외 규칙",
     "responsiveness": "효과순 (반응도 모형)",
@@ -41,8 +41,8 @@ POLICY_LABELS = {
     "dr_gbm": "효과순 (DR-learner, 트리)",
     "t_learner": "효과순 (T-learner)",
     "dragonnet": "효과순 (DragonNet, 신경망)",
-    "ceiling": "상한: 관측 변수로 도달 가능한 효과순 (정답 라벨로 학습)",
-    "oracle": "오라클: 숨은 손상까지 아는 효과순",
+    "ceiling": "상한 (기록된 변수로 낼 수 있는 최선. 정답을 보고 학습)",
+    "oracle": "오라클 (눈에 안 보이는 손상 상태까지 아는 효과순)",
 }
 
 

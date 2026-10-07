@@ -27,23 +27,27 @@ def verdict(report: dict) -> dict:
     ov = report["overlap"]
     if ov["share_extreme"] > 0.05:
         warns.append(
-            f"처치 확률이 0·1 에 붙은 행이 {100 * ov['share_extreme']:.1f}% — 그 행의 반사실은 데이터에 거의 없다"
+            f"점검 여부가 사실상 정해져 있는 행이 {100 * ov['share_extreme']:.1f}% 입니다. 이 행들은 비교할 상대가 로그에 거의 없습니다."
         )
     if min(ov["ess_ratio_treated"], ov["ess_ratio_control"]) < 0.15:
-        warns.append("역확률 가중치가 소수 행에 쏠린다 (유효 표본이 원 표본의 15% 미만)")
+        warns.append("일부 행에 가중치가 지나치게 쏠립니다. 실제로 쓰이는 표본이 전체의 15% 도 안 됩니다.")
     worst = max((abs(b["smd_weighted"]) for b in report["balance"]), default=0.0)
     if worst > 0.10:
-        warns.append(f"가중 후에도 공변량 불균형이 남음 (최대 SMD {worst:.2f} > 0.10)")
+        warns.append(
+            f"가중치를 줘도 점검한 쪽과 안 한 쪽의 차이가 남습니다 (가장 큰 차이 {worst:.2f}, 기준 0.10)."
+        )
     nc = report.get("negative_control")
     severe = False
     if nc and nc["flag"]:
-        warns.append(f"음성 대조 결과에 '효과'가 나옴 (z={nc['z']:.1f}) — 보정되지 않은 교란이 있다는 신호")
+        warns.append(
+            f"점검 이전의 고장에서도 '효과'가 보입니다 (z={nc['z']:.1f}). 보정되지 않은 이유가 남아 있다는 신호입니다."
+        )
         severe = True
     if ov["share_extreme"] > 0.20:
         severe = True
     a = report["estimates"]["aipw"]
     if a["averted_lo"] <= 0 <= a["averted_hi"]:
-        warns.append("신뢰구간이 0 을 포함한다 — 효과가 있다고도 없다고도 말할 수 없다")
+        warns.append("95% 구간이 0 을 포함합니다. 효과가 있다고도 없다고도 말할 수 없습니다.")
     level = "green" if not warns else ("red" if severe else "yellow")
     tip = report.get("tipping")
     dep = None

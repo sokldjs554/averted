@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "averted"
 version = "0.1.0"
-description = "점검 한 번이 막은 고장을 추정한다 — 위험이 아니라 효과 기준으로 점검 인력을 배분하는 인과추론 도구"
+description = "점검 한 번이 막은 고장을 추정하고, 위험이 아니라 효과 기준으로 점검 인력을 나누는 인과추론 도구"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

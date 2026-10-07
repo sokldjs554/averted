@@ -8,9 +8,9 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="banner">모든 데이터는 <b>합성(SYNTHETIC)</b>입니다 — 실제 설비 정보 없음. 숫자는 "현실의 효과"가 아니라 <b>추정 방법이 정답을 맞히는가</b>에 대한 검증입니다. <a href="https://github.com/sokldjs554/averted/blob/main/docs/design.md" target="_blank" rel="noopener">가정과 한계</a></div>
+<div class="banner">모든 데이터는 <b>합성(SYNTHETIC)</b>입니다. 실제 설비 정보는 없습니다. 숫자는 현실의 효과가 아니라 <b>추정 방법이 정답을 맞히는지</b> 확인한 결과입니다. <a href="https://github.com/sokldjs554/averted/blob/main/docs/design.md" target="_blank" rel="noopener">가정과 한계</a></div>
 <header class="top">
-  <h1>averted <small>점검을 더 하면 고장이 줄까? 로그만 보면 거꾸로 보입니다.</small></h1>
+  <h1>averted <small>점검을 더 하면 고장이 줄까요? 로그만 보면 거꾸로 보입니다.</small></h1>
   <div class="spacer"></div>
   <div class="ctrl">
     <label>세계 <select id="scn" aria-label="시뮬레이션 세계 선택"></select></label>
@@ -29,40 +29,40 @@
 </nav>
 <main>
   <section id="tab-illusion" class="tab">
-    <div class="headline"><h2>점검한 설비가 더 많이 고장난다 — 점검이 해로운 걸까?</h2><p>아닙니다. 현장은 위험한 설비를 골라서 점검하기 때문입니다. 로그를 그대로 비교하면 효과의 부호까지 틀립니다.</p></div>
+    <div class="headline"><h2>점검한 설비가 더 많이 고장납니다. 점검이 해로운 걸까요?</h2><p>아닙니다. 현장은 위험한 설비를 골라서 점검하기 때문입니다. 로그를 그대로 비교하면 효과의 방향까지 거꾸로 나옵니다.</p></div>
     <div class="grid wide">
-      <div class="card"><h2>로그에 보이는 것</h2><div class="sub">4주 안에 비계획 고장이 난 비율 · 점검한 주 vs 점검하지 않은 주</div><div id="ill-observed"></div></div>
-      <div class="card"><h2>점검 1회가 막은 고장 (%p)</h2><div class="sub">양수 = 점검이 고장을 줄임 · 점 = 추정, 선 = 95% 구간, 점선 = 정답(시뮬레이터가 앎)</div><div id="ill-forest"></div></div>
+      <div class="card"><h2>로그에 보이는 것</h2><div class="sub">4주 안에 계획에 없던 고장이 난 비율입니다. 점검한 주와 점검하지 않은 주를 비교했습니다.</div><div id="ill-observed"></div></div>
+      <div class="card"><h2>점검 1회가 막은 고장 (%p)</h2><div class="sub">오른쪽(양수)일수록 점검이 고장을 많이 막았다는 뜻입니다. 점은 추정값, 선은 95% 구간, 점선은 정답입니다(시뮬레이터가 압니다).</div><div id="ill-forest"></div></div>
     </div>
     <div class="grid wide" style="margin-top:16px">
-      <div class="card"><h2>왜 거꾸로 보이나 — 위험할수록 점검도 더 하고, 고장도 더 난다</h2><div class="sub">평가 구간의 설비를 위험(점검 여부를 무시한 고장 예측)으로 10등분 · 가로 1 = 가장 안전, 10 = 가장 위험</div><div id="ill-why"></div></div>
+      <div class="card"><h2>왜 거꾸로 보일까요? 위험한 설비일수록 점검도 더 하고, 고장도 더 납니다</h2><div class="sub">설비를 위험도 순으로 10등분했습니다. 1이 가장 안전하고 10이 가장 위험합니다. 위험도는 점검 여부를 따지지 않고 예측한 고장 확률입니다.</div><div id="ill-why"></div></div>
       <div class="callout" id="ill-note" style="align-self:start"></div>
     </div>
-    <details class="more"><summary>더 자세히 — 다른 보정 방법(회귀 · IPW)도 같은 답을 내나</summary>
-      <div class="card"><div class="sub">보정 방법을 바꿔도 결론이 같은지 보는 견고성 확인입니다. 순진한 비교만 부호가 다릅니다.</div><div id="ill-forest-all"></div></div>
+    <details class="more"><summary>더 자세히: 다른 보정 방법(회귀, IPW)도 같은 답을 내는지</summary>
+      <div class="card"><div class="sub">보정 방법을 바꿔도 결론이 같은지 확인합니다. 그대로 비교한 경우만 방향이 다릅니다.</div><div id="ill-forest-all"></div></div>
     </details>
   </section>
 
   <section id="tab-who" class="tab" hidden>
-    <div class="headline"><h2>같은 점검 횟수로, 누구에게 쓰면 더 많이 막나</h2><p>사이트·주마다 K 개를 어떤 기준으로 고르는가. 위험순은 보통의 예지보전이 하는 일입니다.</p></div>
-    <div class="ctrl" style="margin-bottom:10px"><label>사이트·주당 점검 수 K <select id="who-k"></select></label><label><input type="checkbox" id="who-ope"> 모든 정책 · 로그만으로 추정한 값(OPE) 보기</label></div>
+    <div class="headline"><h2>같은 점검 횟수로 누구에게 쓰면 더 많이 막을까요?</h2><p>사이트와 주마다 K곳을 어떤 기준으로 고르느냐의 차이입니다. 위험순은 보통의 예지보전이 하는 방식입니다.</p></div>
+    <div class="ctrl" style="margin-bottom:10px"><label>사이트·주당 점검 수 K <select id="who-k"></select></label><label><input type="checkbox" id="who-ope"> 모든 정책과 로그만으로 추정한 값(OPE) 보기</label></div>
     <div class="grid wide">
       <div class="card"><h2>점검 100번당 막는 고장</h2><div class="sub" id="who-sub"></div><div id="who-policy"></div></div>
-      <div class="card"><h2>위험과 효과는 다르다</h2><div class="sub">평가 구간의 마지막 주, 전체 사이트 설비 · 가로 = 위험, 세로 = 점검 효과</div>
+      <div class="card"><h2>위험과 효과는 다릅니다</h2><div class="sub">평가 구간의 마지막 주, 전체 사이트의 설비입니다. 가로는 위험, 세로는 점검 효과입니다.</div>
         <div class="seg" role="group" aria-label="세로축"><button type="button" id="sc-est" aria-pressed="true">추정 효과</button><button type="button" id="sc-truth" aria-pressed="false">정답 효과</button></div>
         <div id="who-scatter"></div></div>
     </div>
-    <details class="more"><summary>더 자세히 — 종류·수리 접수별 / 고객사 풀링 학습곡선 / 효과 추정기 비교</summary>
+    <details class="more"><summary>더 자세히: 종류·수리 접수별 비교, 고객사 데이터를 모을수록 나아지는 정도, 효과 추정기 비교</summary>
       <div class="grid wide">
-        <div class="card"><h2>종류·수리 접수별: 위험 vs 효과</h2><div class="sub">평균 위험이 높아도 효과가 낮은 설비가 있다</div><div id="who-cat"></div></div>
-        <div class="card"><h2>고객사를 풀링할수록 배운다</h2><div class="sub">학습에 쓴 사이트 수 → 처음 보는 사이트에서의 점검 100번당 막는 고장</div><div id="who-curve"></div></div>
+        <div class="card"><h2>종류·수리 접수별: 위험과 효과</h2><div class="sub">평균 위험이 높아도 효과가 낮은 설비가 있습니다.</div><div id="who-cat"></div></div>
+        <div class="card"><h2>고객사 데이터를 모을수록 배웁니다</h2><div class="sub">학습에 쓴 사이트 수에 따라, 처음 보는 사이트에서 점검 100번당 막는 고장이 어떻게 달라지는지 봅니다.</div><div id="who-curve"></div></div>
       </div>
-      <div class="card" style="margin-top:16px"><h2>효과 추정기 비교 (같은 기준)</h2><div class="sub">정답 효과와의 순위 상관·오차, 그리고 정책 가치. 단순 규칙을 못 이기는 학습 모형은 쓸 이유가 없다.</div><div id="who-cate"></div></div>
+      <div class="card" style="margin-top:16px"><h2>효과 추정기 비교</h2><div class="sub">정답과 얼마나 비슷한지, 그 추정기로 점검했을 때의 가치는 얼마인지를 같은 기준으로 비교합니다. 단순한 규칙을 이기지 못하는 학습 모형은 쓸 이유가 없습니다.</div><div id="who-cate"></div></div>
     </details>
   </section>
 
   <section id="tab-plan" class="tab" hidden>
-    <div class="headline"><h2>이번 주 점검표 — 위험순과 효과순을 나란히</h2><p>같은 사이트·같은 주의 같은 K. "정답 보기"를 켜면 각 설비의 실제 효과(시뮬레이터가 아는 값)가 보입니다.</p></div>
+    <div class="headline"><h2>이번 주 점검표: 위험순과 효과순을 나란히 봅니다</h2><p>같은 사이트, 같은 주, 같은 K입니다. '정답 보기'를 켜면 각 설비의 실제 효과(시뮬레이터가 아는 값)가 보입니다.</p></div>
     <div class="ctrl" style="margin-bottom:12px">
       <label>사이트 <select id="plan-site"></select></label>
       <label>주 <select id="plan-week"></select></label>
@@ -74,33 +74,33 @@
   </section>
 
   <section id="tab-trust" class="tab" hidden>
-    <div class="headline"><h2>이 추정을 믿어도 되나</h2><p>로그 감사는 추정을 내놓기 전에 믿을 수 있는지 먼저 점검하고, 못 믿을 때는 빨강으로 알려 줍니다. 못 잡는 경우도 아래에 그대로 보여 줍니다.</p></div>
+    <div class="headline"><h2>이 추정을 믿어도 될까요?</h2><p>감사는 추정값을 내기 전에 믿을 수 있는지 먼저 확인하고, 믿기 어려우면 빨강으로 알려 줍니다. 잡아내지 못하는 경우도 아래에 그대로 보여 줍니다.</p></div>
     <div class="grid wide">
       <div class="card"><h2>판정</h2><div id="tr-verdict"></div></div>
-      <div class="card"><h2>숨은 교란이 강해지면 — 감사는 잡아내나</h2><div class="sub">γ = 분석가가 못 보는 신호로 점검을 정하는 정도 (같은 세계, 3~5 시드 평균)</div><div id="tr-hunch"></div></div>
+      <div class="card"><h2>기록에 없는 이유가 강해지면 감사가 잡아낼까요?</h2><div class="sub">γ는 분석하는 사람이 못 보는 신호로 점검 대상을 정하는 정도입니다. 같은 세계를 시드 3~5개로 반복해 평균했습니다.</div><div id="tr-hunch"></div></div>
     </div>
-    <details class="more"><summary>더 자세히 — 겹침 · 균형 · 민감도 · 구간이 정말 95% 를 덮나</summary>
+    <details class="more"><summary>더 자세히: 비교할 상대가 있는지, 가중치 후 균형, 민감도, 95% 구간이 정말 95%를 덮는지</summary>
       <div class="grid wide">
-        <div class="card"><h2>겹침 — 점검할 확률 분포</h2><div class="sub">처치 확률(e)이 0·1 에 붙은 곳의 반사실은 데이터에 없다</div><div id="tr-overlap"></div></div>
-        <div class="card"><h2>균형 — 가중 후 공변량 차이 (SMD)</h2><div class="sub">0.10 이하가 관례</div><div id="tr-balance"></div></div>
+        <div class="card"><h2>비교할 상대가 있나: 점검할 확률의 분포</h2><div class="sub">점검할 확률이 0이나 1에 붙은 설비는 '점검하지 않았다면 어땠을지'를 알 수 없습니다.</div><div id="tr-overlap"></div></div>
+        <div class="card"><h2>균형: 가중치 후 점검한 쪽과 안 한 쪽의 차이 (SMD)</h2><div class="sub">0.10 이하면 충분히 비슷하다고 봅니다.</div><div id="tr-balance"></div></div>
       </div>
       <div class="grid wide" style="margin-top:16px">
-        <div class="card"><h2>민감도 — 관측 변수 하나를 몰랐다면</h2><div class="sub">그 변수를 뺐을 때 추정이 얼마나 움직이나 = 그만큼 강한 숨은 교란이 있을 때 움직일 수 있는 크기</div><div id="tr-bench"></div></div>
-        <div class="card"><h2>95% 구간은 정말 95% 를 덮나 (몬테카를로)</h2><div class="sub" id="tr-cov-sub"></div><div id="tr-cov"></div></div>
+        <div class="card"><h2>민감도: 변수 하나를 몰랐다면</h2><div class="sub">그 변수를 빼고 추정하면 값이 얼마나 움직이는지 봅니다. 그만큼 강한 숨은 요인이 있으면 추정도 그만큼 움직일 수 있다는 뜻입니다.</div><div id="tr-bench"></div></div>
+        <div class="card"><h2>95% 구간이 정말 95%를 덮을까요? (몬테카를로)</h2><div class="sub" id="tr-cov-sub"></div><div id="tr-cov"></div></div>
       </div>
     </details>
-    <details class="more"><summary>더 자세히 — 무작위 파일럿으로 시험하기 · 파일럿 규모 계획기</summary>
+    <details class="more"><summary>더 자세히: 무작위 파일럿으로 시험하기, 파일럿 규모 계획기</summary>
       <div class="grid wide">
-        <div class="card"><h2>무작위 파일럿이 관측 추정을 시험한다</h2><div class="sub">숨은 교란이 있는 세계에서 설비 일부를 동전 던지기로 점검 배정</div><div id="tr-pilot"></div></div>
-        <div class="card"><h2>파일럿 규모 계획기</h2><div class="sub">겹치지 않는 4주 창 × 설비 수 · 설비 내 상관(ICC) 반영</div><div id="tr-planner"></div></div>
+        <div class="card"><h2>무작위 파일럿이 로그로 낸 추정을 시험합니다</h2><div class="sub">기록에 없는 이유가 있는 세계에서, 설비 일부를 동전 던지기로 점검 대상에 배정했습니다.</div><div id="tr-pilot"></div></div>
+        <div class="card"><h2>파일럿 규모 계획기</h2><div class="sub">겹치지 않는 4주 창 × 설비 수입니다. 같은 설비의 기록끼리 닮은 정도(ICC)를 반영합니다.</div><div id="tr-planner"></div></div>
       </div>
     </details>
   </section>
 
   <section id="tab-bring" class="tab" hidden>
-    <div class="headline"><h2>내 로그로 돌려 보기</h2><p>점검 로그 한 장(CSV)을 올리면 같은 감사가 돕니다. 시뮬레이터가 아니라 실제 로그에서 가장 먼저 필요한 것은 추정이 아니라 이 진단입니다.</p></div>
+    <div class="headline"><h2>내 로그로 돌려 보기</h2><p>점검 로그 CSV 한 장을 올리면 같은 감사가 돕니다. 실제 로그에서 가장 먼저 필요한 것은 추정이 아니라 이 진단입니다.</p></div>
     <div class="grid wide">
-      <div class="card"><h2>필요한 열</h2><div class="sub">한 행 = 설비 × 주. 열 이름이 다르면 LogSpec 으로 매핑합니다.</div><div id="bring-schema"></div></div>
+      <div class="card"><h2>필요한 열</h2><div class="sub">한 행은 설비 하나의 한 주입니다. 열 이름이 다르면 LogSpec으로 맞춥니다.</div><div id="bring-schema"></div></div>
       <div class="card"><h2>실행</h2><div id="bring-run"></div></div>
     </div>
   </section>

@@ -44,7 +44,7 @@
  "observational_verdict": {
   "level": "red",
   "warnings": [
-   "음성 대조 결과에 '효과'가 나옴 (z=-9.9) — 보정되지 않은 교란이 있다는 신호"
+   "점검 이전의 고장에서도 '효과'가 보입니다 (z=-9.9). 보정되지 않은 이유가 남아 있다는 신호입니다."
   ],
   "assumption_dependence": null
  },

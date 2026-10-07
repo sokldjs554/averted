@@ -6,10 +6,10 @@ import argparse
 def main() -> None:
     ap = argparse.ArgumentParser(prog="averted")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("serve", help="API + 콘솔 (http://localhost:8000)")
+    s = sub.add_parser("serve", help="API와 콘솔을 띄웁니다 (http://localhost:8000)")
     s.add_argument("--port", type=int, default=8000)
     s.add_argument("--host", default="127.0.0.1")
-    a = sub.add_parser("audit", help="CSV 로그 감사 (JSON 출력)")
+    a = sub.add_parser("audit", help="CSV 로그를 감사합니다 (JSON으로 출력)")
     a.add_argument("csv")
     args = ap.parse_args()
     if args.cmd == "serve":

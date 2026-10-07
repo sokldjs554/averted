@@ -1,17 +1,28 @@
 # 평가 — 무엇을 어떻게 재고, 숫자는 무엇을 뜻하나
 
-> 모든 숫자는 합성 세계에서 나왔고 `scripts/fill_numbers.py` 가 `artifacts/` 에서 채운다. CI 가 문서와 산출물의 불일치를 검사한다.
-> 시뮬레이터가 정답을 알기 때문에 **추정 방법이 정답을 맞히는지** 를 잴 수 있다. 현실의 효과 크기에 대한 주장이 아니다 (`docs/simulator.md`).
+> 이 문서의 모든 숫자는 합성 세계, 곧 시뮬레이터가 만든 데이터에서 나왔습니다. `scripts/fill_numbers.py` 가 `artifacts/` 에서 숫자를 채우고, CI 가 문서와 산출물이 다른지 검사합니다.
+> 시뮬레이터는 정답을 알고 있습니다. 그래서 **추정 방법이 정답을 맞히는지** 를 잴 수 있습니다. 현실의 효과 크기를 주장하는 문서는 아닙니다 (`docs/simulator.md`).
 
-세 개의 세계(각 <!-- num:summary.base.n_sites|d -->60<!-- /num -->개 사이트, 설비 <!-- num:summary.base.n_assets|,d -->7,444<!-- /num -->대, 3년, <!-- num:summary.base.rows|,d -->1,161,264<!-- /num -->행). 학습은 앞 104주, 평가는 뒤 구간이다.
+평가에는 합성 세계 세 개를 씁니다. 세계마다 사이트가 <!-- num:summary.base.n_sites|d -->60<!-- /num -->개, 설비가 <!-- num:summary.base.n_assets|,d -->7,444<!-- /num -->대 있습니다. 기간은 3년이고, 로그는 <!-- num:summary.base.rows|,d -->1,161,264<!-- /num -->행입니다. 학습에는 앞 104주를 쓰고, 평가에는 그 뒤 구간을 씁니다.
 
 | 세계 | 설정 | 무엇을 보려는가 |
 |---|---|---|
-| ① base | 기록된 변수로 교란이 모두 설명됨, 설비별 반응 차이 있음 | 보정이 통하는가, 효과순이 위험순을 이기는가 |
-| ② hunch | 점검자가 기록에 없는 신호(γ=1.0)로 점검 대상을 정함 | **틀려야 하는 세계** — 감사가 경고하는가 |
-| ③ flat | 종류별 발견율·수리 접수 지연·수명 한계가 없음 | 위험순이 충분한 세계에서 효과순이 손해를 보지 않는가 |
+| ① base | 점검 대상을 고른 이유가 모두 기록에 남아 있습니다. 설비마다 점검에 반응하는 정도가 다릅니다. | 보정이 통하는가, 효과순이 위험순을 이기는가 |
+| ② hunch | 점검자가 기록에 없는 신호(세기 γ=1.0)를 보고 점검 대상을 정합니다. | **틀려야 하는 세계**입니다. 감사가 경고하는지 봅니다. |
+| ③ flat | 설비 종류별로 달랐던 발견율, 수리 접수 지연, 수명 한계를 모두 껐습니다. | 위험순만으로 충분한 세계에서도 효과순이 손해를 보지 않는가 |
+
+점검 여부와 고장에 동시에 영향을 주는 요인을 교란이라 합니다. 그중 기록에 남지 않은 것, 곧 기록에 없는 이유로 점검 대상을 고르는 것을 이 문서에서는 숨은 교란이라 부릅니다. ② hunch 가 그런 세계입니다.
 
 ## 1. 착시와 보정 — 점검 1회가 막은 고장 (%p, 95% 구간)
+
+같은 로그로 점검 1회가 막은 고장을 네 가지 방법으로 추정하고, 정답과 견줍니다. %p 는 퍼센트포인트이고, 고장률의 차이를 뜻합니다.
+
+- 순진한 비교는 점검한 주와 안 한 주의 고장률을 그대로 비교합니다.
+- 회귀 보정은 기록된 변수를 넣은 회귀로 그 차이를 고칩니다.
+- IPW(inverse probability weighting, 역확률 가중)는 점검할 확률의 역수로 가중해서, 점검한 쪽과 안 한 쪽의 조건을 맞춥니다.
+- AIPW(augmented IPW)는 IPW 와 회귀 보정을 합친 방법입니다. 점검 확률 모형과 결과 모형 중 하나만 맞아도 추정이 맞아서 이중 강건 추정이라고도 합니다.
+
+감사 판정은 이 추정을 믿어도 되는지 따로 확인한 결과입니다.
 
 | 세계 | 순진한 비교 | 회귀 보정 | IPW | **AIPW** | 정답 | 감사 판정 |
 |---|---:|---:|---:|---:|---:|---|
@@ -19,29 +30,36 @@
 | ② hunch | <!-- num:scenarios.hunch.audit.estimates.naive.averted|pp -->-8.2<!-- /num --> | <!-- num:scenarios.hunch.audit.estimates.regression.averted|pp -->-2.2<!-- /num --> | <!-- num:scenarios.hunch.audit.estimates.ipw.averted|pp -->-2.3<!-- /num --> | **<!-- num:summary.hunch.aipw_averted|pp -->-2.0<!-- /num -->** (<!-- num:summary.hunch.aipw_lo|pp -->-2.3<!-- /num -->~<!-- num:summary.hunch.aipw_hi|pp -->-1.8<!-- /num -->) | <!-- num:summary.hunch.truth_averted|pp -->0.7<!-- /num --> | <!-- num:summary.hunch.verdict|s -->red<!-- /num --> (음성 대조 z=<!-- num:summary.hunch.nc_z|.1f -->-13.3<!-- /num -->) |
 | ③ flat | <!-- num:scenarios.flat.audit.estimates.naive.averted|pp -->1.3<!-- /num --> | <!-- num:scenarios.flat.audit.estimates.regression.averted|pp -->2.0<!-- /num --> | <!-- num:scenarios.flat.audit.estimates.ipw.averted|pp -->2.0<!-- /num --> | **<!-- num:summary.flat.aipw_averted|pp -->2.0<!-- /num -->** (<!-- num:summary.flat.aipw_lo|pp -->1.9<!-- /num -->~<!-- num:summary.flat.aipw_hi|pp -->2.2<!-- /num -->) | <!-- num:summary.flat.truth_averted|pp -->2.0<!-- /num --> | <!-- num:summary.flat.verdict|s -->green<!-- /num --> · 가정 의존도 <!-- num:summary.flat.assumption_dependence|s -->낮음<!-- /num --> |
 
-읽는 법: 순진한 비교는 점검한 주의 고장률에서 안 한 주를 뺀 값의 부호를 뒤집은 것(양수 = 점검이 고장을 줄임)이다. base 에서 점검한 주의 고장률이 <!-- num:summary.base.outcome_rate_treated|.1% -->12.0%<!-- /num -->, 안 한 주가 <!-- num:summary.base.outcome_rate_control|.1% -->7.1%<!-- /num --> 라서 로그만 보면 점검이 해롭다.
-보정하면 부호가 돌아오고 구간이 정답을 덮는다. hunch 에서는 보정해도 정답과 부호가 반대이고, 감사가 빨강이다.
+읽는 법: 순진한 비교는 점검한 주의 고장률에서 안 한 주의 고장률을 뺀 뒤, 부호를 뒤집은 값입니다. 양수면 점검이 고장을 줄였다는 뜻입니다.
+base 에서 점검한 주의 고장률은 <!-- num:summary.base.outcome_rate_treated|.1% -->12.0%<!-- /num -->이고, 안 한 주는 <!-- num:summary.base.outcome_rate_control|.1% -->7.1%<!-- /num -->입니다. 그래서 로그만 보면 점검이 오히려 해로워 보입니다.
+보정하면 base 에서는 부호가 돌아오고, 95% 구간이 정답을 덮습니다. hunch 에서는 보정해도 추정의 부호가 정답과 반대입니다. 이때 감사 판정은 빨강(red)입니다.
+
+빨강의 근거는 음성 대조입니다. 음성 대조는 점검이 원인일 수 없는 결과, 곧 점검 이전 구간의 고장에도 '효과'가 나오는지 보는 검사입니다. 나오면 기록에 없는 이유로 점검 대상을 골랐다는 신호입니다. 표의 z 는 그 '효과'를 표준오차로 나눈 값입니다.
+
+가정 의존도는 관측 변수 하나를 뺄 때 추정이 얼마나 움직이는지를 나타냅니다. 신호등과는 따로 표시합니다.
 
 ## 2. 95% 구간은 정말 95% 를 덮나 — 몬테카를로
 
-같은 설정의 작은 세계(4개 사이트, 100주)를 <!-- num:coverage.reps|d -->40<!-- /num -->번씩 새로 만들어 구간이 정답을 덮은 비율을 쟀다.
+95% 구간이 실제로 정답을 95% 쯤 덮는지 확인했습니다. 같은 설정의 작은 세계(사이트 4개, 100주)를 설정마다 <!-- num:coverage.reps|d -->40<!-- /num -->번씩 새로 만들고, 구간이 정답을 덮은 비율을 쟀습니다. 이렇게 같은 시험을 되풀이하는 방법을 몬테카를로라고 합니다.
+표의 숫자는 구간이 정답을 덮은 비율입니다. 95% 에 가까울수록 좋습니다.
 
 | 추정 방법 | base | flat | hunch (γ=0.6) |
 |---|---:|---:|---:|
 | 순진한 비교 | <!-- num:summary.coverage.base.naive|.0% -->0%<!-- /num --> | <!-- num:summary.coverage.flat.naive|.0% -->45%<!-- /num --> | <!-- num:summary.coverage.hunch.naive|.0% -->0%<!-- /num --> |
 | 회귀 보정 | <!-- num:summary.coverage.base.regression|.0% -->42%<!-- /num --> | <!-- num:summary.coverage.flat.regression|.0% -->42%<!-- /num --> | <!-- num:summary.coverage.hunch.regression|.0% -->2%<!-- /num --> |
 | IPW | <!-- num:summary.coverage.base.ipw|.0% -->95%<!-- /num --> | <!-- num:summary.coverage.flat.ipw|.0% -->92%<!-- /num --> | <!-- num:summary.coverage.hunch.ipw|.0% -->12%<!-- /num --> |
-| **AIPW (군집 구간)** | **<!-- num:summary.coverage.base.aipw|.0% -->95%<!-- /num -->** | **<!-- num:summary.coverage.flat.aipw|.0% -->92%<!-- /num -->** | <!-- num:summary.coverage.hunch.aipw|.0% -->15%<!-- /num --> |
-| AIPW (행 독립 구간) | <!-- num:summary.coverage.base.aipw_iid|.0% -->95%<!-- /num --> | <!-- num:summary.coverage.flat.aipw_iid|.0% -->92%<!-- /num --> | <!-- num:summary.coverage.hunch.aipw_iid|.0% -->20%<!-- /num --> |
+| **AIPW (설비별로 묶은 구간)** | **<!-- num:summary.coverage.base.aipw|.0% -->95%<!-- /num -->** | **<!-- num:summary.coverage.flat.aipw|.0% -->92%<!-- /num -->** | <!-- num:summary.coverage.hunch.aipw|.0% -->15%<!-- /num --> |
+| AIPW (행을 독립으로 본 구간) | <!-- num:summary.coverage.base.aipw_iid|.0% -->95%<!-- /num --> | <!-- num:summary.coverage.flat.aipw_iid|.0% -->92%<!-- /num --> | <!-- num:summary.coverage.hunch.aipw_iid|.0% -->20%<!-- /num --> |
 
-- 숨은 교란이 없으면 AIPW 구간이 약 95% 를 덮는다 (40번 반복의 포함률은 ±3.5%p 정도 흔들린다).
-- 회귀 보정은 점추정은 맞아도 구간이 결과 모형의 오차를 반영하지 않아 덜 덮는다 — 이중 강건 추정을 쓰는 이유다.
-- 이 자료는 설비 내 상관이 작아 군집 구간과 행 독립 구간의 차이가 거의 없다. 군집 보정은 상관이 큰 실제 로그를 위한 안전장치다.
-- 숨은 교란(γ=0.6)에서는 어떤 구간도 덮지 못한다. 구간은 기록된 변수 밖의 교란을 모른다.
+- 기록에 없는 이유로 점검 대상을 고르는 일(숨은 교란)이 없으면, AIPW 구간은 정답을 약 95% 덮습니다. 40번만 반복해서 잰 비율이라 ±3.5%p 정도의 오차가 있습니다.
+- 회귀 보정은 추정값(점추정)이 맞아도 정답을 덜 덮습니다. 구간이 결과 모형(고장을 예측하는 모형)의 오차를 반영하지 않기 때문입니다. 이것이 이중 강건 추정을 쓰는 이유입니다.
+- 이 자료는 같은 설비의 여러 주 사이 상관(설비 내 상관)이 작습니다. 그래서 설비별로 묶은 구간과 행을 독립으로 본 구간의 차이가 거의 없습니다. 설비별로 묶는 보정은 상관이 큰 실제 로그를 위한 안전장치입니다.
+- 기록에 없는 신호가 점검 대상 선택에 작용하는 세계(hunch, γ=0.6)에서는 어떤 구간도 정답을 제대로 덮지 못합니다. 구간은 기록된 변수 밖의 요인을 알지 못하기 때문입니다.
 
 ## 3. 숨은 교란 스윕 — 감사가 틀린 추정을 잡아내나
 
-γ(분석가가 못 보는 신호의 강도)를 올리며 같은 세계를 5 시드씩 돌렸다 (8개 사이트).
+분석가가 볼 수 없는 신호의 세기 γ 를 단계적으로 올리면서, 감사가 틀린 추정을 잡아내는지 봅니다. 이렇게 값을 바꿔 가며 훑어 보는 것을 스윕이라 합니다.
+γ 마다 같은 세계(사이트 8개)를 시드(난수의 출발값) 5개로 돌렸습니다. AIPW 오차는 AIPW 추정에서 정답을 뺀 값입니다. 경고율은 시드 5개 중 감사의 음성 대조가 경고한 비율입니다.
 
 | γ | 정답 | 순진한 비교 | AIPW | AIPW 오차 | 구간이 정답을 덮은 비율 | 감사의 음성 대조 경고율 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -51,14 +69,25 @@
 | 1.0 | <!-- num:summary.hunch_sweep.g1_0.truth|pp -->0.7<!-- /num --> | <!-- num:summary.hunch_sweep.g1_0.naive|pp -->-8.5<!-- /num --> | <!-- num:summary.hunch_sweep.g1_0.aipw|pp -->-2.7<!-- /num --> | <!-- num:summary.hunch_sweep.g1_0.bias|pp -->-3.4<!-- /num --> | <!-- num:summary.hunch_sweep.g1_0.coverage|.0% -->0%<!-- /num --> | <!-- num:summary.hunch_sweep.g1_0.nc_flag_rate|.0% -->100%<!-- /num --> |
 | 1.5 | <!-- num:summary.hunch_sweep.g1_5.truth|pp -->0.7<!-- /num --> | <!-- num:summary.hunch_sweep.g1_5.naive|pp -->-9.3<!-- /num --> | <!-- num:summary.hunch_sweep.g1_5.aipw|pp -->-3.6<!-- /num --> | <!-- num:summary.hunch_sweep.g1_5.bias|pp -->-4.3<!-- /num --> | <!-- num:summary.hunch_sweep.g1_5.coverage|.0% -->0%<!-- /num --> | <!-- num:summary.hunch_sweep.g1_5.nc_flag_rate|.0% -->100%<!-- /num --> |
 
-- **강한 숨은 교란(γ≥1.0)은 항상 잡는다.** 약한 교란(γ=0.3)은 **못 잡는다** — 그 세계에서 AIPW 오차는 효과 자체(정답 <!-- num:summary.hunch_sweep.g0_3.truth|pp -->0.8<!-- /num -->%p)보다 큰데 경고율이 <!-- num:summary.hunch_sweep.g0_3.nc_flag_rate|.0% -->0%<!-- /num --> 이다.
-- 교란이 없는 세계(γ=0)에서도 경고율이 <!-- num:summary.hunch_sweep.g0_0.nc_flag_rate|.0% -->20%<!-- /num --> 로 0 이 아니다(5 시드). 오경보가 있다.
-- 그래서 신호등과 별개로 **가정 의존도**를 표시하고, 결정이 중요하면 무작위 파일럿을 권한다 (§6).
+- **기록에 없는 신호가 강하면(γ≥1.0) 감사가 항상 경고했습니다.** 약하면(γ=0.3) **경고하지 못했습니다.** 이 세계에서 AIPW 오차는 효과 자체(정답 <!-- num:summary.hunch_sweep.g0_3.truth|pp -->0.8<!-- /num -->%p)보다 큰데도 경고율이 <!-- num:summary.hunch_sweep.g0_3.nc_flag_rate|.0% -->0%<!-- /num --> 입니다.
+- 기록에 없는 신호가 전혀 없는 세계(γ=0)에서도 경고율은 <!-- num:summary.hunch_sweep.g0_0.nc_flag_rate|.0% -->20%<!-- /num --> 로 0 이 아닙니다(시드 5개 기준). 즉 잘못된 경보(오경보)가 있습니다.
+- 그래서 신호등과 별개로 **가정 의존도**를 따로 표시하고, 결정이 중요하면 무작위 파일럿을 권합니다 (§6).
 
 ## 4. 정책 비교 — 사이트·주마다 8곳을 고를 때 점검 100번당 막는 고장
 
-평가 구간 <!-- num:scenarios.base.policy.test_weeks.0|d -->104<!-- /num -->~<!-- num:scenarios.base.policy.test_weeks.1|d -->152<!-- /num -->주, 사이트·주 <!-- num:scenarios.base.policy.n_groups|,d -->2,940<!-- /num -->묶음. 괄호는 95% 구간(사이트·주 묶음 부트스트랩).
-"OPE" 는 정답 없이 **로그만으로** 같은 정책의 가치를 추정한 값이다 (선택된 행의 AIPW 점수 합).
+정책은 점검할 곳을 고르는 규칙입니다. 사이트·주마다 설비 8곳을 골랐을 때, 점검 100번당 막는 고장 수로 정책을 비교합니다.
+
+평가 구간은 <!-- num:scenarios.base.policy.test_weeks.0|d -->104<!-- /num -->~<!-- num:scenarios.base.policy.test_weeks.1|d -->152<!-- /num -->주이고, 사이트·주 묶음은 <!-- num:scenarios.base.policy.n_groups|,d -->2,940<!-- /num -->개입니다. 괄호 안은 95% 구간이며, 사이트·주 묶음 단위로 다시 뽑아 보는 방법(부트스트랩)으로 구했습니다.
+
+각 표의 두 열은 같은 정책의 가치를 두 방식으로 잰 값입니다. '정답 기준'은 시뮬레이터가 아는 정답으로 채점한 값입니다. '로그만으로 추정'은 정답 없이 로그만으로 추정한 값이고, OPE(off-policy evaluation)라고 부릅니다. 선택된 행의 AIPW 점수를 더해 구합니다.
+
+비교하는 정책은 다음과 같습니다.
+
+- 무작위는 설비를 아무렇게나 고릅니다. 라운드로빈은 가장 오래 안 본 설비부터 고릅니다.
+- 위험순은 고장이 날 것 같은 설비부터 고르는 보통의 예지보전입니다. 효과순은 점검했을 때 고장이 더 많이 줄 것 같은 설비부터 고릅니다.
+- 수리 접수 제외 규칙은 이미 수리 접수가 된 설비를 건너뛰는 단순 규칙입니다.
+- 효과순에 쓰는 효과 추정 방법은 네 가지입니다. 반응도 모형은 '점검 없이 고장날 확률 × 점검이 그 위험을 줄이는 정도'로 효과를 구조화한 모형이고, 직접 구현했습니다. DR-learner 는 AIPW 에서 나오는 점수를 목표로 트리 모형을 학습합니다. T-learner 는 점검한 설비와 안 한 설비에 모형을 따로 맞춥니다. DragonNet 은 점검 확률과 결과를 신경망 하나로 함께 학습합니다.
+- 상한은 정답 라벨로 학습한 효과 회귀로, 기록된 변수만으로 낼 수 있는 최대치입니다. 오라클은 기록에 없는 숨은 손상까지 아는 효과순입니다. 둘 다 시뮬레이터만 아는 정보를 쓰는 비교 기준입니다.
 
 ### ① base
 
@@ -76,9 +105,9 @@
 | 상한 — 정답 라벨로 학습한 효과 회귀 (관측 변수의 한계) | **<!-- num:scenarios.base.policy.by_k.8.ceiling.true_per100|.2f -->3.68<!-- /num -->** (<!-- num:scenarios.base.policy.ci.ceiling.true_lo|.2f -->3.64<!-- /num -->~<!-- num:scenarios.base.policy.ci.ceiling.true_hi|.2f -->3.71<!-- /num -->) | <!-- num:scenarios.base.policy.by_k.8.ceiling.ope_per100|.2f -->3.82<!-- /num --> (<!-- num:scenarios.base.policy.ci.ceiling.ope_lo|.1f -->2.4<!-- /num -->~<!-- num:scenarios.base.policy.ci.ceiling.ope_hi|.1f -->5.1<!-- /num -->) |
 | 오라클 — 숨은 손상까지 아는 효과순 | **<!-- num:scenarios.base.policy.by_k.8.oracle.true_per100|.2f -->5.54<!-- /num -->** (<!-- num:scenarios.base.policy.ci.oracle.true_lo|.2f -->5.51<!-- /num -->~<!-- num:scenarios.base.policy.ci.oracle.true_hi|.2f -->5.59<!-- /num -->) | <!-- num:scenarios.base.policy.by_k.8.oracle.ope_per100|.2f -->4.20<!-- /num --> (<!-- num:scenarios.base.policy.ci.oracle.ope_lo|.1f -->2.4<!-- /num -->~<!-- num:scenarios.base.policy.ci.oracle.ope_hi|.1f -->6.1<!-- /num -->) |
 
-- **효과순이 위험순을 +<!-- num:summary.base.lift_resp_vs_risk|.0% -->30%<!-- /num --> 앞선다**, 단순 규칙(수리 접수 제외)을 더한 위험순과도 +<!-- num:summary.base.lift_resp_vs_risk_rule|.0% -->10%<!-- /num --> 차이다. 규칙만으로 위험순에서 +<!-- num:summary.base.lift_risk_rule_vs_risk|.0% -->18%<!-- /num --> 를 얻는다 — 규칙이 대부분의 이득을 이미 가져간다.
-- 학습한 효과순은 상한(관측 변수로 도달 가능한 최대)의 <!-- num:summary.base.ceiling_share|.0% -->93%<!-- /num --> 에 도달한다. 오라클과의 차이는 숨은 손상을 모르는 대가다.
-- **OPE 의 오차**: 효과순의 정답과 OPE 의 차이가 <!-- num:summary.base.ope_abs_err_resp|.2f -->0.02<!-- /num --> 이다. 구간은 넓어서(약 ±1.2) 정책 간 차이(0.3~0.8)를 로그만으로 구별하기에는 이 규모에서도 빠듯하다.
+- **효과순(반응도 모형)은 위험순보다 막는 고장이 +<!-- num:summary.base.lift_resp_vs_risk|.0% -->30%<!-- /num --> 많습니다.** 수리 접수 제외 규칙을 더한 위험순과 견줘도 +<!-- num:summary.base.lift_resp_vs_risk_rule|.0% -->10%<!-- /num --> 앞섭니다. 규칙만 더해도 위험순에서 +<!-- num:summary.base.lift_risk_rule_vs_risk|.0% -->18%<!-- /num --> 를 얻습니다. 따라서 이득의 대부분은 이 단순 규칙이 이미 가져갑니다.
+- 학습한 효과순(반응도 모형)은 상한(관측 변수로 낼 수 있는 최대치)의 <!-- num:summary.base.ceiling_share|.0% -->93%<!-- /num --> 에 이릅니다. 오라클과의 차이는 숨은 손상을 모르기 때문에 생깁니다.
+- **OPE 의 오차**: 효과순의 정답과 OPE 추정의 차이는 <!-- num:summary.base.ope_abs_err_resp|.2f -->0.02<!-- /num --> 입니다. 하지만 구간이 넓습니다(약 ±1.2). 정책 사이의 차이(0.3~0.8)를 로그만으로 구별하기에는 이 규모에서도 빠듯합니다.
 
 ### ② hunch — 감사가 빨강일 때
 
@@ -96,7 +125,9 @@
 | 상한 — 정답 라벨로 학습한 효과 회귀 (관측 변수의 한계) | **<!-- num:scenarios.hunch.policy.by_k.8.ceiling.true_per100|.2f -->2.83<!-- /num -->** (<!-- num:scenarios.hunch.policy.ci.ceiling.true_lo|.2f -->2.80<!-- /num -->~<!-- num:scenarios.hunch.policy.ci.ceiling.true_hi|.2f -->2.88<!-- /num -->) | <!-- num:scenarios.hunch.policy.by_k.8.ceiling.ope_per100|.2f -->-3.35<!-- /num --> (<!-- num:scenarios.hunch.policy.ci.ceiling.ope_lo|.1f -->-4.5<!-- /num -->~<!-- num:scenarios.hunch.policy.ci.ceiling.ope_hi|.1f -->-2.2<!-- /num -->) |
 | 오라클 — 숨은 손상까지 아는 효과순 | **<!-- num:scenarios.hunch.policy.by_k.8.oracle.true_per100|.2f -->4.61<!-- /num -->** (<!-- num:scenarios.hunch.policy.ci.oracle.true_lo|.2f -->4.58<!-- /num -->~<!-- num:scenarios.hunch.policy.ci.oracle.true_hi|.2f -->4.66<!-- /num -->) | <!-- num:scenarios.hunch.policy.by_k.8.oracle.ope_per100|.2f -->-10.02<!-- /num --> (<!-- num:scenarios.hunch.policy.ci.oracle.ope_lo|.1f -->-13.3<!-- /num -->~<!-- num:scenarios.hunch.policy.ci.oracle.ope_hi|.1f -->-6.9<!-- /num -->) |
 
-오염된 DR 점수로 학습한 효과 모형은 **무작위보다 나쁘다**. 위험순은 점검자의 편향과 무관한 고장 예측이라 영향이 작다. OPE 는 부호까지 틀려서 이 세계에서 로그만으로 정책을 고르면 안 된다.
+기록에 없는 신호에 오염된 DR 점수(AIPW 에서 나오는 점수)로 학습한 효과 모형은 **무작위보다 나쁩니다**.
+위험순은 고장 예측일 뿐 점검자의 치우침과 관계가 없어서 영향이 작습니다.
+OPE 는 부호까지 틀립니다. 이 세계에서는 로그만으로 정책을 골라서는 안 됩니다.
 
 ### ③ flat
 
@@ -114,11 +145,13 @@
 | 상한 — 정답 라벨로 학습한 효과 회귀 (관측 변수의 한계) | **<!-- num:scenarios.flat.policy.by_k.8.ceiling.true_per100|.2f -->8.71<!-- /num -->** (<!-- num:scenarios.flat.policy.ci.ceiling.true_lo|.2f -->8.59<!-- /num -->~<!-- num:scenarios.flat.policy.ci.ceiling.true_hi|.2f -->8.85<!-- /num -->) | <!-- num:scenarios.flat.policy.by_k.8.ceiling.ope_per100|.2f -->9.08<!-- /num --> (<!-- num:scenarios.flat.policy.ci.ceiling.ope_lo|.1f -->8.1<!-- /num -->~<!-- num:scenarios.flat.policy.ci.ceiling.ope_hi|.1f -->9.9<!-- /num -->) |
 | 오라클 — 숨은 손상까지 아는 효과순 | **<!-- num:scenarios.flat.policy.by_k.8.oracle.true_per100|.2f -->13.45<!-- /num -->** (<!-- num:scenarios.flat.policy.ci.oracle.true_lo|.2f -->13.30<!-- /num -->~<!-- num:scenarios.flat.policy.ci.oracle.true_hi|.2f -->13.64<!-- /num -->) | <!-- num:scenarios.flat.policy.by_k.8.oracle.ope_per100|.2f -->12.45<!-- /num --> (<!-- num:scenarios.flat.policy.ci.oracle.ope_lo|.1f -->11.2<!-- /num -->~<!-- num:scenarios.flat.policy.ci.oracle.ope_hi|.1f -->13.8<!-- /num -->) |
 
-설비별 반응 차이가 없으므로 위험순이 충분하다. 효과순은 손해도 이득도 거의 없다(+<!-- num:summary.flat.lift_resp_vs_risk|.0% -->2%<!-- /num -->).
+이 세계에는 설비마다 점검에 반응하는 정도의 차이가 없습니다. 그래서 위험순만으로 충분합니다. 효과순(반응도 모형)은 위험순과 견줘 손해도 이득도 거의 없습니다(+<!-- num:summary.flat.lift_resp_vs_risk|.0% -->2%<!-- /num -->).
 
 ## 5. 학습곡선 — 고객사 몇 곳을 풀링해야 처음 보는 사이트에서 이기나
 
-60개 사이트 세계에서 <!-- num:summary.curve.n_test_sites|d -->12<!-- /num -->곳을 끝까지 떼어 두고(신규 고객사), 나머지에서 k 곳을 무작위로 골라 학습했다. k 마다 2~5번 반복한 평균이다 (표준편차는 콘솔의 표 보기).
+고객사 몇 곳의 로그를 합쳐(풀링) 학습해야, 처음 보는 사이트에서 효과순이 위험순을 이기는지 봅니다.
+사이트가 60개인 세계에서 <!-- num:summary.curve.n_test_sites|d -->12<!-- /num -->곳은 끝까지 학습에 쓰지 않고 떼어 둡니다. 이 사이트들이 처음 보는 신규 고객사 역할을 합니다. 나머지에서 k 곳을 무작위로 골라 학습하고, 떼어 둔 사이트에서 평가했습니다. k 마다 2~5번 반복해 평균을 냈습니다. 표준편차는 콘솔의 표에서 볼 수 있습니다.
+표의 숫자는 점검 100번당 막는 고장 수입니다. 맨 오른쪽 열만 OPE 추정과 정답의 차이(절대 오차)입니다.
 
 | 학습 사이트 수 | 효과순 | 위험순 | 위험순 + 규칙 | 효과순 + 규칙 | OPE 절대 오차 (효과순) |
 |---|---:|---:|---:|---:|---:|
@@ -128,15 +161,16 @@
 | 32곳 | <!-- num:summary.curve.by_k.k32.responsiveness|.2f -->3.48<!-- /num --> | <!-- num:summary.curve.by_k.k32.risk|.2f -->2.74<!-- /num --> | <!-- num:summary.curve.by_k.k32.risk_rule|.2f -->3.22<!-- /num --> | <!-- num:summary.curve.by_k.k32.responsiveness_rule|.2f -->3.48<!-- /num --> | <!-- num:summary.curve.by_k.k32.ope_err_responsiveness|.2f -->0.38<!-- /num --> |
 | 48곳 | <!-- num:summary.curve.by_k.k48.responsiveness|.2f -->3.44<!-- /num --> | <!-- num:summary.curve.by_k.k48.risk|.2f -->2.72<!-- /num --> | <!-- num:summary.curve.by_k.k48.risk_rule|.2f -->3.19<!-- /num --> | <!-- num:summary.curve.by_k.k48.responsiveness_rule|.2f -->3.45<!-- /num --> | <!-- num:summary.curve.by_k.k48.ope_err_responsiveness|.2f -->0.35<!-- /num --> |
 
-(콘솔의 "어디에 점검할까" 탭에 그래프와 표가 있다)
+콘솔의 "어디에 점검할까" 탭에서 그래프와 표를 볼 수 있습니다.
 
-- <!-- num:summary.curve.k_min|d -->4<!-- /num -->곳: 효과순 <!-- num:summary.curve.resp_min|.2f -->2.52<!-- /num --> vs 위험순 <!-- num:summary.curve.risk_min|.2f -->2.52<!-- /num --> (효과순 <!-- num:summary.curve.lift_min|.0% -->0%<!-- /num -->).
-- <!-- num:summary.curve.k_max|d -->48<!-- /num -->곳: 효과순 <!-- num:summary.curve.resp_max|.2f -->3.44<!-- /num --> vs 위험순 <!-- num:summary.curve.risk_max|.2f -->2.72<!-- /num --> (효과순 <!-- num:summary.curve.lift_max|.0% -->26%<!-- /num -->), 위험순 + 규칙 <!-- num:summary.curve.rule_max|.2f -->3.19<!-- /num -->.
-- OPE 의 평균 절대 오차 <!-- num:summary.curve.ope_err_min|.2f -->0.75<!-- /num --> → <!-- num:summary.curve.ope_err_max|.2f -->0.35<!-- /num -->.
+- 가장 적게 학습한 <!-- num:summary.curve.k_min|d -->4<!-- /num -->곳에서는 효과순이 <!-- num:summary.curve.resp_min|.2f -->2.52<!-- /num -->, 위험순이 <!-- num:summary.curve.risk_min|.2f -->2.52<!-- /num --> 입니다. 효과순이 앞선 정도는 <!-- num:summary.curve.lift_min|.0% -->0%<!-- /num --> 입니다.
+- 가장 많이 학습한 <!-- num:summary.curve.k_max|d -->48<!-- /num -->곳에서는 효과순이 <!-- num:summary.curve.resp_max|.2f -->3.44<!-- /num -->, 위험순이 <!-- num:summary.curve.risk_max|.2f -->2.72<!-- /num --> 입니다. 효과순이 앞선 정도는 <!-- num:summary.curve.lift_max|.0% -->26%<!-- /num --> 입니다. 위험순 + 규칙은 <!-- num:summary.curve.rule_max|.2f -->3.19<!-- /num --> 입니다.
+- OPE 의 평균 절대 오차(정답과 OPE 추정의 차이를 평균한 값)는 학습을 가장 적게 했을 때 <!-- num:summary.curve.ope_err_min|.2f -->0.75<!-- /num -->, 가장 많이 했을 때 <!-- num:summary.curve.ope_err_max|.2f -->0.35<!-- /num --> 입니다.
 
 ## 6. 무작위 파일럿이 관측 추정을 시험한다
 
-hunch 세계에서 설비의 40% 를 무작위 파일럿으로 지정했다 (평소 점검 비율로 동전 던지기, 겹치지 않는 4주 창).
+무작위 파일럿은 점검 여부를 동전 던지기로 정하는 시험입니다. 점검 대상을 고르는 이유가 결과에 섞이지 않으므로, 관측 로그 추정이 맞는지 확인하는 기준이 됩니다.
+hunch 세계에서 설비의 40% 를 파일럿 설비로 지정했습니다. 동전 던지기 확률은 평소 점검 비율로 맞췄고, 서로 겹치지 않는 4주 구간(창)을 썼습니다.
 
 | | 점검 1회가 막은 고장 |
 |---|---:|
@@ -144,10 +178,12 @@ hunch 세계에서 설비의 40% 를 무작위 파일럿으로 지정했다 (평
 | **무작위 파일럿 평균 차이** | **<!-- num:summary.pilot.pilot_averted|pp -->0.6<!-- /num -->%p** (<!-- num:summary.pilot.pilot_lo|pp -->-0.0<!-- /num -->~<!-- num:summary.pilot.pilot_hi|pp -->1.2<!-- /num -->) |
 | 정답 (파일럿 설비) | <!-- num:summary.pilot.truth|pp -->1.0<!-- /num -->%p |
 
-파일럿 설비 <!-- num:summary.pilot.n_assets|,d -->2,940<!-- /num -->대, 독립 창 <!-- num:summary.pilot.n_windows|,d -->112,956<!-- /num -->개. 파일럿 구간은 넓지만 **무편향**이라 관측 추정과의 모순을 드러낸다(모순 여부: <!-- num:summary.pilot.contradicts|s -->True<!-- /num -->).
-평균 효과가 작으면 한 고객사의 파일럿으로는 검출이 불가능하다 — 계획기가 필요한 규모를 알려 준다 (콘솔 "믿어도 되나" 탭, `POST /v1/pilot/plan`).
+파일럿 설비는 <!-- num:summary.pilot.n_assets|,d -->2,940<!-- /num -->대이고, 서로 독립인 창은 <!-- num:summary.pilot.n_windows|,d -->112,956<!-- /num -->개입니다. 파일럿 구간은 넓지만 **무편향**(평균적으로 정답에서 한쪽으로 치우치지 않음)이라, 관측 추정과 어긋나는지 드러내 줍니다. 관측 추정과 모순되는지(모순 여부)는 <!-- num:summary.pilot.contradicts|s -->True<!-- /num --> 입니다.
+평균 효과가 작으면 한 고객사의 파일럿만으로는 효과를 가려낼 수 없습니다. 필요한 규모는 파일럿 계획기가 알려 줍니다 (콘솔 "믿어도 되나" 탭, `POST /v1/pilot/plan`).
 
 ## 7. 재현
+
+아래 두 명령으로 이 문서의 숫자를 다시 만들고 검사합니다.
 
 ```bash
 make pipeline     # 시나리오 3종 → 파일럿 → 몬테카를로 → 스윕 → 학습곡선 → 요약 → 정적 데모 → 숫자 채우기

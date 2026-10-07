@@ -4,9 +4,9 @@ ARTIFACTS ?= artifacts
 .PHONY: help install pipeline scenarios pilot curve coverage hunch summary manifest numbers check-numbers demo demo-gif test lint fmt serve docker clean
 
 help:
-	@echo "make install       - 개발 의존성 설치 (CPU torch, econml 교차 검증 포함)"
-	@echo "make pipeline      - 시나리오 3종 · 파일럿 · 몬테카를로 · 숨은 교란 스윕 · 학습곡선 → 정적 데모 → 숫자 채우기 (약 2시간, 4 vCPU)"
-	@echo "make test          - 단위 테스트 (시뮬레이터 불변식 · econml 일치 · JS 포트 일치 · API)"
+	@echo "make install       - 개발용 패키지 설치 (CPU torch, 교차 검증용 econml 포함)"
+	@echo "make pipeline      - 실험 전체를 다시 돌리고 정적 데모와 문서 숫자까지 갱신 (약 2시간, 4 vCPU)"
+	@echo "make test          - 테스트 (시뮬레이터, econml 일치, JS 포트 일치, API)"
 	@echo "make serve         - API + 콘솔 (http://localhost:8000/console/)"
 
 install:
