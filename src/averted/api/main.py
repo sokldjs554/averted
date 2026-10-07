@@ -27,7 +27,7 @@ CONSOLE = Path(__file__).resolve().parent.parent / "console"
 app = FastAPI(
     title="averted",
     version=__version__,
-    description="점검 한 번이 막은 고장을 추정합니다. 모든 데이터는 합성(SYNTHETIC)입니다.",
+    description="점검 한 번이 막은 고장을 추정한다. 모든 데이터는 합성(SYNTHETIC)이다.",
 )
 store = Store()
 
@@ -77,7 +77,7 @@ def scenarios():
 def scenario(sid: str):
     d = store.scenario(sid)
     if d is None:
-        raise HTTPException(404, f"그런 시나리오가 없습니다: {sid}")
+        raise HTTPException(404, f"그런 시나리오가 없다: {sid}")
     return d
 
 
@@ -85,10 +85,10 @@ def scenario(sid: str):
 def scenario_policy(sid: str, k: int = Query(8, ge=1, le=64)):
     d = store.scenario(sid)
     if d is None:
-        raise HTTPException(404, f"그런 시나리오가 없습니다: {sid}")
+        raise HTTPException(404, f"그런 시나리오가 없다: {sid}")
     by_k = d["policy"]["by_k"]
     if str(k) not in by_k:
-        raise HTTPException(400, f"미리 계산된 K 만 지원합니다: {d['policy']['ks']}")
+        raise HTTPException(400, f"미리 계산된 K 만 지원한다: {d['policy']['ks']}")
     return {
         "k": k,
         "labels": d["policy"]["labels"],
@@ -101,18 +101,18 @@ def scenario_policy(sid: str, k: int = Query(8, ge=1, le=64)):
 def scenario_plan(sid: str, site: int = Query(...), week: int = Query(...), k: int = Query(8, ge=1, le=12)):
     d = store.scenario(sid)
     if d is None:
-        raise HTTPException(404, f"그런 시나리오가 없습니다: {sid}")
+        raise HTTPException(404, f"그런 시나리오가 없다: {sid}")
     for p in d["plans"]:
         if p["site"] == site and p["week"] == week:
             return {**p, "by_effect": p["by_effect"][:k], "by_risk": p["by_risk"][:k], "k": k}
-    raise HTTPException(404, "그 사이트·주의 점검표는 미리 계산해 두지 않았습니다")
+    raise HTTPException(404, "그 사이트·주의 점검표는 미리 계산해 두지 않았다")
 
 
 @app.get("/v1/artifacts/{name}")
 def artifact(name: str):
     d = store.artifact(name)
     if d is None:
-        raise HTTPException(404, f"그런 산출물이 없습니다: {name}")
+        raise HTTPException(404, f"그런 산출물이 없다: {name}")
     return d
 
 
@@ -142,8 +142,8 @@ def pilot_plan(body: PilotIn):
 
 SCHEMA = [
     {"column": "asset", "type": "int|str", "meaning": "설비 번호"},
-    {"column": "week", "type": "int", "meaning": "주 번호. 한 행은 설비 하나의 한 주입니다"},
-    {"column": "site", "type": "int", "meaning": "사이트(고객사·건물) 번호. 0부터 시작합니다"},
+    {"column": "week", "type": "int", "meaning": "주 번호. 한 행은 설비 하나의 한 주"},
+    {"column": "site", "type": "int", "meaning": "사이트(고객사·건물) 번호. 0부터 시작"},
     {
         "column": "cat",
         "type": "str",
@@ -152,12 +152,12 @@ SCHEMA = [
     {"column": "age", "type": "float", "meaning": "연식(년)"},
     {"column": "crit", "type": "int", "meaning": "중요도 1~3"},
     {"column": "grade_last", "type": "int", "meaning": "직전 점검 판정. 0 양호, 1 주의, 2 불량"},
-    {"column": "wsv", "type": "float", "meaning": "마지막 점검 뒤 지난 주 수 (52주를 넘으면 52로 둡니다)"},
-    {"column": "bd", "type": "float", "meaning": "최근 고장을 더한 값 (오래된 고장일수록 작게 셉니다)"},
+    {"column": "wsv", "type": "float", "meaning": "마지막 점검 뒤 지난 주 수 (52주를 넘으면 52로 둠)"},
+    {"column": "bd", "type": "float", "meaning": "최근 고장을 더한 값 (오래된 고장일수록 작게 셈)"},
     {
         "column": "cmp",
         "type": "float",
-        "meaning": "최근 민원·A/S 접수를 더한 값 (오래된 접수일수록 작게 셉니다)",
+        "meaning": "최근 민원·A/S 접수를 더한 값 (오래된 접수일수록 작게 셈)",
     },
     {"column": "open_wo", "type": "0|1", "meaning": "수리가 접수된 결함이 남아 있는가"},
     {"column": "treated", "type": "0|1", "meaning": "그 주에 점검했는가"},
@@ -169,12 +169,12 @@ SCHEMA = [
     {
         "column": "due",
         "type": "0|1",
-        "meaning": "(선택) 법정 점검 기한이라 점검 여부가 달력으로 정해진 행. 분석에서 뺍니다",
+        "meaning": "(선택) 법정 점검 기한이라 점검 여부가 달력으로 정해진 행. 분석에서 뺌",
     },
     {
         "column": "y_prev",
         "type": "0|1|NaN",
-        "meaning": "(선택) 점검 이전 4주의 고장. 보정이 충분한지 확인하는 데 씁니다",
+        "meaning": "(선택) 점검 이전 4주의 고장. 보정이 충분한지 확인하는 데 씀",
     },
 ]
 
@@ -184,7 +184,7 @@ def schema():
     return {
         "columns": SCHEMA,
         "max_rows": MAX_AUDIT_ROWS,
-        "note": "열 이름이 다르면 LogSpec 으로 맞춥니다 (docs/real-data.md)",
+        "note": "열 이름이 다르면 LogSpec 으로 맞춘다 (docs/real-data.md)",
     }
 
 
@@ -197,9 +197,9 @@ async def audit(
     try:
         log = pd.read_csv(io.BytesIO(raw))
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(400, f"CSV 를 읽을 수 없습니다: {e}") from e
+        raise HTTPException(400, f"CSV 를 읽을 수 없다: {e}") from e
     if len(log) > MAX_AUDIT_ROWS:
-        raise HTTPException(413, f"행이 너무 많습니다 ({len(log):,} > {MAX_AUDIT_ROWS:,})")
+        raise HTTPException(413, f"행이 너무 많다 ({len(log):,} > {MAX_AUDIT_ROWS:,})")
     spec = LogSpec(
         prior_outcome="y_prev" if "y_prev" in log.columns else None,
         due="due" if "due" in log.columns else None,

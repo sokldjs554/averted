@@ -44,7 +44,7 @@
  "observational_verdict": {
   "level": "red",
   "warnings": [
-   "점검 이전의 고장에서도 '효과'가 보입니다 (z=-9.9). 보정되지 않은 이유가 남아 있다는 신호입니다."
+   "점검 이전의 고장에서도 '효과'가 보인다 (z=-9.9). 보정되지 않은 이유가 남아 있다는 신호다."
   ],
   "assumption_dependence": null
  },

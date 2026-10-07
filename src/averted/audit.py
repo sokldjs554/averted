@@ -27,27 +27,27 @@ def verdict(report: dict) -> dict:
     ov = report["overlap"]
     if ov["share_extreme"] > 0.05:
         warns.append(
-            f"점검 여부가 사실상 정해져 있는 행이 {100 * ov['share_extreme']:.1f}% 입니다. 이 행들은 비교할 상대가 로그에 거의 없습니다."
+            f"점검 여부가 사실상 정해져 있는 행이 {100 * ov['share_extreme']:.1f}%. 이 행들은 비교할 상대가 로그에 거의 없다."
         )
     if min(ov["ess_ratio_treated"], ov["ess_ratio_control"]) < 0.15:
-        warns.append("일부 행에 가중치가 지나치게 쏠립니다. 실제로 쓰이는 표본이 전체의 15% 도 안 됩니다.")
+        warns.append("일부 행에 가중치가 지나치게 쏠린다. 실제로 쓰이는 표본이 전체의 15%도 안 된다.")
     worst = max((abs(b["smd_weighted"]) for b in report["balance"]), default=0.0)
     if worst > 0.10:
         warns.append(
-            f"가중치를 줘도 점검한 쪽과 안 한 쪽의 차이가 남습니다 (가장 큰 차이 {worst:.2f}, 기준 0.10)."
+            f"가중치를 줘도 점검한 쪽과 안 한 쪽의 차이가 남는다 (가장 큰 차이 {worst:.2f}, 기준 0.10)."
         )
     nc = report.get("negative_control")
     severe = False
     if nc and nc["flag"]:
         warns.append(
-            f"점검 이전의 고장에서도 '효과'가 보입니다 (z={nc['z']:.1f}). 보정되지 않은 이유가 남아 있다는 신호입니다."
+            f"점검 이전의 고장에서도 '효과'가 보인다 (z={nc['z']:.1f}). 보정되지 않은 이유가 남아 있다는 신호다."
         )
         severe = True
     if ov["share_extreme"] > 0.20:
         severe = True
     a = report["estimates"]["aipw"]
     if a["averted_lo"] <= 0 <= a["averted_hi"]:
-        warns.append("95% 구간이 0 을 포함합니다. 효과가 있다고도 없다고도 말할 수 없습니다.")
+        warns.append("95% 구간이 0을 포함한다. 효과가 있다고도 없다고도 말할 수 없다.")
     level = "green" if not warns else ("red" if severe else "yellow")
     tip = report.get("tipping")
     dep = None

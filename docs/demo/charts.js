@@ -90,7 +90,7 @@
     const W = chartWidth(container), H = opts.height || 220, m = { l: 48, r: opts.rightPad ?? 16, t: 12, b: 28 };
     const xs = series.flatMap((s) => s.points.map((p) => +p.x));
     const ys = series.flatMap((s) => s.points.map((p) => p.y)).filter((v) => v != null);
-    if (!xs.length) { container.appendChild(el("div", { class: "empty" }, "데이터가 없습니다")); return null; }
+    if (!xs.length) { container.appendChild(el("div", { class: "empty" }, "데이터 없음")); return null; }
     const x0 = Math.min(...xs), x1 = Math.max(...xs);
     let y0 = opts.y0 ?? Math.min(0, ...ys), y1 = opts.y1 ?? Math.max(...ys);
     if (y1 === y0) y1 = y0 + 1;
@@ -159,7 +159,7 @@
    * rows: [{label, value, color?, sub?, lo?, hi?, note?}] — 음수 허용(발산), lo/hi 가 있으면 신뢰구간 수염 */
   function hbars(container, rows, opts = {}) {
     container.replaceChildren();
-    if (!rows.length) { container.appendChild(el("div", { class: "empty" }, "데이터가 없습니다")); return; }
+    if (!rows.length) { container.appendChild(el("div", { class: "empty" }, "데이터 없음")); return; }
     const W = chartWidth(container), bh = opts.barHeight || 18, gap = opts.gap || 10, labelW = Math.min(opts.labelW || 150, Math.round(W * 0.46)), valueW = opts.valueW || 74, H = rows.length * (bh + gap) + 6;
     const svg = el("svg:svg", { class: "chart", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": opts.label || "" });
     const vals = rows.flatMap((r) => [r.value, r.hi ?? r.value]);
@@ -201,7 +201,7 @@
   /* ---------- 표 ---------- */
   function table(container, cols, rows, onRow) {
     container.replaceChildren();
-    if (!rows.length) { container.appendChild(el("div", { class: "empty" }, "데이터가 없습니다")); return; }
+    if (!rows.length) { container.appendChild(el("div", { class: "empty" }, "데이터 없음")); return; }
     const t = el("table", { class: "data" });
     const tr = el("tr");
     for (const c of cols) tr.appendChild(el("th", { class: (c.num ? "num " : "") + (c.nowrap ? "nowrap" : "") }, c.h));
@@ -274,7 +274,7 @@
    * rows: [{label, value, lo, hi, color?, sub?}]   opts: {fmt, refs:[{x,label}], label, labelW, zeroLabel} */
   function forest(container, rows, opts = {}) {
     container.replaceChildren();
-    if (!rows.length) { container.appendChild(el("div", { class: "empty" }, "데이터가 없습니다")); return; }
+    if (!rows.length) { container.appendChild(el("div", { class: "empty" }, "데이터 없음")); return; }
     const W = chartWidth(container), rowH = 36, labelW = Math.min(opts.labelW || 150, Math.round(W * 0.36)), m = { l: labelW, r: 64, t: 24, b: 26 };
     const H = m.t + rows.length * rowH + m.b;
     const refs = opts.refs || [];
@@ -323,7 +323,7 @@
    * pts: [{x, y, kind:"none"|"risk"|"effect"|"both", title, rows:[{label,value}]}]   opts: {fmtX, fmtY, xlabel, ylabel, height} */
   function scatter(container, pts, opts = {}) {
     container.replaceChildren();
-    if (!pts.length) { container.appendChild(el("div", { class: "empty" }, "데이터가 없습니다")); return; }
+    if (!pts.length) { container.appendChild(el("div", { class: "empty" }, "데이터 없음")); return; }
     const W = chartWidth(container), H = opts.height || 300, m = { l: 54, r: 14, t: 14, b: 40 };
     const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
     const x0 = 0, x1 = Math.max(...xs) * 1.04;
@@ -428,7 +428,7 @@
   }
 
   function verdictBadge(level) {
-    const map = { green: ["good", "확인된 문제 없음"], yellow: ["legal", "주의"], red: ["fail", "믿으면 안 됩니다"] };
+    const map = { green: ["good", "확인된 문제 없음"], yellow: ["legal", "주의"], red: ["fail", "믿으면 안 됨"] };
     const [cls, text] = map[level] || ["quiet", level];
     return badge(cls, text);
   }
