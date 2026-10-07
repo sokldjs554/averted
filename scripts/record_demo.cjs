@@ -1,5 +1,5 @@
 // 데모 GIF 녹화 — `node scripts/record_demo.cjs http://localhost:8020 /tmp/demo /` 뒤 ffmpeg 로 GIF 변환 (Makefile: make demo-gif)
-// 흐름: 1 착시(로그 vs 보정) → 2 어디에 점검할까(위험순 vs 효과순) → 3 믿어도 되나(함정 세계에서 감사가 빨강)
+// 흐름: 1 착시(로그 vs 보정) → 2 점검 대상 고르기(위험순 vs 효과순) → 3 감사(함정 세계에서 빨강)
 const { chromium } = require("playwright");
 const { mkdirSync } = require("node:fs");
 

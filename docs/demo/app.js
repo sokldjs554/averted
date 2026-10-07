@@ -39,7 +39,7 @@
     try { list = (await api("/v1/scenarios")).scenarios; } catch (e) { put("hero", text("div", "err", "산출물을 불러오지 못했습니다: " + e.message)); return; }
     const order = ["base", "hunch", "flat"];
     list.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
-    const names = { base: "① 평범한 세계: 기록이 점검 이유를 다 설명합니다", hunch: "② 함정 세계: 기록에 없는 신호로 점검합니다", flat: "③ 설비마다 반응이 같은 세계" };
+    const names = { base: "① 평범한 세계 (기록이 점검 이유를 다 설명)", hunch: "② 함정 세계 (기록에 없는 신호로 점검)", flat: "③ 설비마다 반응이 같은 세계" };
     const sel = $("scn");
     sel.replaceChildren(...list.map((s) => { const o = el("option", { value: s.id }); o.textContent = names[s.id] || s.title; return o; }));
     sel.addEventListener("change", () => loadScenario(sel.value));
@@ -116,8 +116,8 @@
     const t3s = worse ? "학습한 효과순이 위험순보다 나쁩니다. 감사가 빨강이면 쓰면 안 됩니다." : same ? "위험순과 차이가 없습니다. 이 세계에서는 위험순으로 충분합니다." : "같은 점검 횟수로 위험순보다 더 많이 막습니다.";
     put("hero",
       C.tile("① 로그만 보면", t1v, t1s, naive.averted < 0 ? "bad" : ""),
-      C.tile("② 위험한 설비를 골라 점검한 것을 걷어내면", pp(ai.averted), t2s, bad ? "bad" : "good"),
-      C.tile("③ 점검을 효과 기준으로 나누면", t3v, t3s, worse ? "bad" : same ? "" : "good"));
+      C.tile("② 착시를 걷어내면", pp(ai.averted), t2s, bad ? "bad" : "good"),
+      C.tile("③ 효과 기준으로 점검하면", t3v, t3s, worse ? "bad" : same ? "" : "good"));
   }
 
   /* ------------------------------------------------------------------ 착시 */
@@ -141,12 +141,12 @@
     const note = $("ill-note"); note.className = "callout";
     const lines = [];
     if (d.id === "hunch") {
-      lines.push(["b", "이 세계에서는 보정해도 틀립니다. "], ["t", `점검하는 사람이 기록에 없는 신호를 보고 점검 대상을 고릅니다. 그래서 기록된 변수로 보정해도 점검 1회의 효과가 ${pp(est.aipw.averted)}로 추정됩니다(정답은 ${pp(truth.ate_averted)}). '믿어도 되나' 탭에서 감사가 이 문제를 잡아내는지 확인해 보세요.`]);
+      lines.push(["b", "이 세계에서는 보정해도 틀립니다. "], ["t", `점검하는 사람이 기록에 없는 신호를 보고 대상을 고르기 때문에, 기록된 변수로 보정해도 점검 1회의 효과가 ${pp(est.aipw.averted)}로 추정됩니다(정답 ${pp(truth.ate_averted)}). '감사' 탭에서 이 문제가 잡히는지 볼 수 있습니다.`]);
       note.classList.add("warn");
     } else if (d.id === "flat") {
-      lines.push(["b", "설비마다 반응이 같은 세계입니다. "], ["t", `점검 1회가 평균 ${pp(truth.ate_averted)} 막고, 설비 종류나 수리 접수 여부가 효과를 바꾸지 않습니다. 이 세계에서는 위험순으로 충분해야 합니다. '어디에 점검할까' 탭에서 확인해 보세요.`]);
+      lines.push(["b", "설비마다 반응이 같은 세계입니다. "], ["t", `점검 1회가 평균 ${pp(truth.ate_averted)} 막고, 설비 종류나 수리 접수 여부가 효과를 바꾸지 않습니다. 이 세계에서는 위험순으로 충분합니다. '점검 대상 고르기' 탭에서 확인할 수 있습니다.`]);
     } else {
-      lines.push(["b", "보정하면 착시가 사라집니다. "], ["t", `로그를 그대로 비교하면 점검한 쪽이 ${pp(Math.abs(est.naive.averted))} 더 고장납니다. 기록된 변수로 보정하면 점검 1회가 ${pp(est.aipw.averted)} 막는 것으로 나오고, 정답(${pp(truth.ate_averted)})이 95% 구간 안에 들어옵니다. 다만 이 추정은 "기록에 없는 이유로 점검 대상을 고르지 않는다"는 가정 위에 있습니다.`]);
+      lines.push(["b", "착시가 사라집니다. "], ["t", `로그를 그대로 비교하면 점검한 쪽이 ${pp(Math.abs(est.naive.averted))} 더 고장납니다. 기록된 변수로 보정하면 점검 1회가 ${pp(est.aipw.averted)} 막는 것으로 나오고, 정답(${pp(truth.ate_averted)})이 95% 구간 안에 들어옵니다. 이 추정은 기록에 없는 이유로 점검 대상을 고르지 않았다는 가정 위에 있습니다.`]);
     }
     note.replaceChildren(...lines.map(([t, s]) => (t === "b" ? text("b", "", s) : document.createTextNode(s))));
   }
