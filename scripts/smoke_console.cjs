@@ -21,6 +21,8 @@ const { mkdirSync } = require("node:fs");
   const url = `${base}${pagePath}`;
   const wait = (page, sel, t = 60000) => page.waitForSelector(sel, { timeout: t });
   const tab = async (page, t, sel) => { await page.click(`nav.tabs button[data-tab="${t}"]`); await wait(page, sel); await page.waitForTimeout(400); };
+  // "더 자세히" 접이식 영역을 모두 연다 (열릴 때 차트를 다시 그린다)
+  const openAll = async (page) => { await page.evaluate(() => document.querySelectorAll("details.more").forEach((d) => (d.open = true))); await page.waitForTimeout(500); };
 
   await run("desktop", { width: 1280, height: 900 }, "light", async (page) => {
     await page.goto(url, { waitUntil: "networkidle" });
@@ -37,15 +39,23 @@ const { mkdirSync } = require("node:fs");
     await tab(page, "who", "#who-policy svg");
     await page.screenshot({ path: `${out}/02-who.png`, fullPage: true });
     await page.click("#sc-truth"); await page.waitForTimeout(300);
+    await page.check("#who-ope"); await page.waitForTimeout(300);      // 모든 정책 + OPE
     await page.selectOption("#who-k", "4"); await page.waitForTimeout(300);
+    await page.uncheck("#who-ope");
+    await openAll(page);
+    await wait(page, "#who-curve svg");
+    await page.screenshot({ path: `${out}/02b-who-open.png`, fullPage: true });
+    await tab(page, "trust", "#tr-verdict .badge");
+    await page.screenshot({ path: `${out}/03-trust.png`, fullPage: true });
+    await openAll(page);
+    await wait(page, "#tr-overlap svg");
+    await page.fill('#tr-planner input[type=number] >> nth=2', "1500"); await page.waitForTimeout(300);
+    await page.screenshot({ path: `${out}/03b-trust-open.png`, fullPage: true });
+    await page.selectOption("#scn", "hunch"); await page.waitForTimeout(600);
+    await page.screenshot({ path: `${out}/03c-trust-hunch.png`, fullPage: true });
     await tab(page, "plan", "#plan-cols .plan-list li");
     await page.check("#plan-truth"); await page.waitForTimeout(300);
-    await page.screenshot({ path: `${out}/03-plan.png`, fullPage: true });
-    await tab(page, "trust", "#tr-overlap svg");
-    await page.fill('#tr-planner input[type=number] >> nth=2', "1500"); await page.waitForTimeout(300);
-    await page.screenshot({ path: `${out}/04-trust.png`, fullPage: true });
-    await page.selectOption("#scn", "hunch"); await page.waitForTimeout(600);
-    await page.screenshot({ path: `${out}/04b-trust-hunch.png`, fullPage: true });
+    await page.screenshot({ path: `${out}/04-plan.png`, fullPage: true });
     await tab(page, "bring", "#bring-schema table");
     await page.screenshot({ path: `${out}/05-bring.png`, fullPage: true });
   });
@@ -60,7 +70,7 @@ const { mkdirSync } = require("node:fs");
     await wait(page, "#hero .tile");
     await page.waitForTimeout(500);
     await page.screenshot({ path: `${out}/07-mobile.png`, fullPage: true });
-    for (const t of ["who", "plan", "trust"]) await tab(page, t, { who: "#who-policy svg", plan: "#plan-cols .plan-list li", trust: "#tr-overlap svg" }[t]);
+    for (const t of ["who", "plan", "trust"]) { await tab(page, t, { who: "#who-policy svg", plan: "#plan-cols .plan-list li", trust: "#tr-verdict .badge" }[t]); await openAll(page); }
     const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     if (over > 4) problems.push(`[mobile] 가로 스크롤 ${over}px`);
   });

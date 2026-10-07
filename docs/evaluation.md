@@ -128,7 +128,7 @@
 | 32곳 | <!-- num:summary.curve.by_k.k32.responsiveness|.2f -->3.48<!-- /num --> | <!-- num:summary.curve.by_k.k32.risk|.2f -->2.74<!-- /num --> | <!-- num:summary.curve.by_k.k32.risk_rule|.2f -->3.22<!-- /num --> | <!-- num:summary.curve.by_k.k32.responsiveness_rule|.2f -->3.48<!-- /num --> | <!-- num:summary.curve.by_k.k32.ope_err_responsiveness|.2f -->0.38<!-- /num --> |
 | 48곳 | <!-- num:summary.curve.by_k.k48.responsiveness|.2f -->3.44<!-- /num --> | <!-- num:summary.curve.by_k.k48.risk|.2f -->2.72<!-- /num --> | <!-- num:summary.curve.by_k.k48.risk_rule|.2f -->3.19<!-- /num --> | <!-- num:summary.curve.by_k.k48.responsiveness_rule|.2f -->3.45<!-- /num --> | <!-- num:summary.curve.by_k.k48.ope_err_responsiveness|.2f -->0.35<!-- /num --> |
 
-(콘솔의 "누구에게" 탭에 그래프와 표가 있다)
+(콘솔의 "어디에 점검할까" 탭에 그래프와 표가 있다)
 
 - <!-- num:summary.curve.k_min|d -->4<!-- /num -->곳: 효과순 <!-- num:summary.curve.resp_min|.2f -->2.52<!-- /num --> vs 위험순 <!-- num:summary.curve.risk_min|.2f -->2.52<!-- /num --> (효과순 <!-- num:summary.curve.lift_min|.0% -->0%<!-- /num -->).
 - <!-- num:summary.curve.k_max|d -->48<!-- /num -->곳: 효과순 <!-- num:summary.curve.resp_max|.2f -->3.44<!-- /num --> vs 위험순 <!-- num:summary.curve.risk_max|.2f -->2.72<!-- /num --> (효과순 <!-- num:summary.curve.lift_max|.0% -->26%<!-- /num -->), 위험순 + 규칙 <!-- num:summary.curve.rule_max|.2f -->3.19<!-- /num -->.

@@ -1,5 +1,5 @@
 // 데모 GIF 녹화 — `node scripts/record_demo.cjs http://localhost:8020 /tmp/demo /` 뒤 ffmpeg 로 GIF 변환 (Makefile: make demo-gif)
-// 흐름: 착시(로그 vs 보정) → 틀리는 세계(감사가 빨강) → 누구에게(위험순 vs 효과순) → 이번 주 점검표(정답 보기) → 믿어도 되나(파일럿 계획기)
+// 흐름: 1 착시(로그 vs 보정) → 2 어디에 점검할까(위험순 vs 효과순) → 3 믿어도 되나(함정 세계에서 감사가 빨강)
 const { chromium } = require("playwright");
 const { mkdirSync } = require("node:fs");
 
@@ -17,19 +17,16 @@ const { mkdirSync } = require("node:fs");
 
   await page.goto(`${base}${pagePath}`, { waitUntil: "networkidle" });
   await wait("#hero .tile"); await wait("#ill-forest svg");
-  await pause(3200);                                   // ① 로그만 보면 +4.8%p → ② 보정하면 0.9%p
-  await page.mouse.wheel(0, 380); await pause(2400);   // 위험할수록 더 자주 점검한다
-  await page.mouse.wheel(0, -380);
-  await page.selectOption("#scn", "hunch"); await pause(2800);   // 틀리는 세계: 보정해도 음수
-  await tab("trust", "#tr-verdict .badge"); await pause(3200);   // 감사가 빨강
-  await page.selectOption("#scn", "base"); await pause(1200);
+  await pause(3400);                                   // 상단 세 칸: 로그만 보면 → 걷어내면 → 효과 기준 배분
+  await page.mouse.wheel(0, 360); await pause(2800);   // 왜 거꾸로: 위험할수록 점검도 고장도 많다
+  await page.mouse.wheel(0, -360);
   await tab("who", "#who-policy svg"); await pause(3200);        // 점검 100번당 막는 고장
-  await page.mouse.wheel(0, 260); await pause(1800);
+  await page.mouse.wheel(0, 260); await pause(1600);
   await page.click("#sc-truth"); await pause(1800);              // 산점도: 정답 효과로 전환
-  await tab("plan", "#plan-cols .plan-list li"); await pause(2200);
-  await page.check("#plan-truth"); await pause(3000);            // 정답 보기
-  await tab("trust", "#tr-planner input"); await pause(800);
-  await page.mouse.wheel(0, 900); await pause(2600);             // 파일럿 계획기
+  await page.mouse.wheel(0, -260);
+  await page.selectOption("#scn", "hunch"); await pause(1200);   // 함정 세계로 바꾸고
+  await tab("trust", "#tr-verdict .badge"); await pause(3600);   // 감사가 빨강
+  await page.mouse.wheel(0, 320); await pause(2400);             // 숨은 교란이 강해질 때 감사가 잡나
   const video = page.video();
   await ctx.close();
   const path = await video.path();

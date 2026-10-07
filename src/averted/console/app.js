@@ -31,13 +31,15 @@
       renderAll();
     });
     document.querySelectorAll("nav.tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+    // 접힌 영역은 폭이 0 이라 차트 폭을 못 재므로, 열릴 때 다시 그린다.
+    document.querySelectorAll("details.more").forEach((d) => d.addEventListener("toggle", () => { if (d.open && S.d) renderAll(); }));
     const hash = location.hash.replace("#", "");
     if (hash) showTab(hash, false);
     let list;
     try { list = (await api("/v1/scenarios")).scenarios; } catch (e) { put("hero", text("div", "err", "산출물을 불러오지 못했습니다: " + e.message)); return; }
     const order = ["base", "hunch", "flat"];
     list.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
-    const names = { base: "① 숨은 교란이 없는 세계", hunch: "② 분석가가 못 보는 신호가 있는 세계", flat: "③ 설비별 반응 차이가 없는 세계" };
+    const names = { base: "① 평범한 세계 — 기록이 점검 이유를 다 설명한다", hunch: "② 함정 세계 — 기록에 없는 신호로 점검한다", flat: "③ 설비마다 반응이 같은 세계" };
     const sel = $("scn");
     sel.replaceChildren(...list.map((s) => { const o = el("option", { value: s.id }); o.textContent = names[s.id] || s.title; return o; }));
     sel.addEventListener("change", () => loadScenario(sel.value));
@@ -102,23 +104,20 @@
     const d = S.d, a = d.audit, est = a.estimates, truth = a.truth, data = a.data, k = d.policy.k;
     const w = d.world;
     const desc = { base: "기록된 변수로 교란이 모두 설명되는 세계 — 보정이 통해야 한다.", hunch: "점검자가 기록에 없는 신호(소음·열)로 점검을 정하는 세계 — 보정이 틀려야 하고, 감사가 그것을 알려야 한다.", flat: "설비 종류·수리 접수에 따른 반응 차이가 없는 세계 — 위험순이 충분해야 한다." };
-    $("world-note").textContent = `${w.n_sites}개 사이트 · 설비 ${w.n_assets.toLocaleString("ko-KR")}대 · ${w.weeks}주 · 설비×주 ${w.rows.toLocaleString("ko-KR")}행. ${desc[d.id] || ""}`;
-    const naive = est.naive;
+    $("world-note").textContent = `합성 로그: ${w.n_sites}개 사이트 · 설비 ${w.n_assets.toLocaleString("ko-KR")}대 · ${Math.round(w.weeks / 52)}년. ${desc[d.id] || ""}`;
+    const naive = est.naive, ai = est.aipw, bad = a.verdict.level === "red";
     const t1v = naive.averted < 0 ? spp(-naive.averted) : "−" + pp(naive.averted);
-    const t1s = naive.averted < 0 ? `점검한 설비가 안 한 설비보다 더 고장난다 (${pc(data.outcome_rate_treated)} vs ${pc(data.outcome_rate_control)})` : `점검이 고장을 줄이는 것으로 보인다 (${pc(data.outcome_rate_treated)} vs ${pc(data.outcome_rate_control)})`;
-    const ai = est.aipw, lvl = a.verdict.level;
-    const bad = lvl === "red";
-    const t2s = `점검 1회가 막는 고장 · 95% 구간 ${pp(ai.averted_lo)} ~ ${pp(ai.averted_hi)} · 정답 ${pp(truth.ate_averted)}` + (bad ? " · 감사: 빨강 (보정해도 틀림)" : "");
+    const t1s = naive.averted < 0 ? "점검한 설비가 더 고장난다 — 점검이 해로워 보인다" : "점검이 고장을 줄이는 것으로 보인다";
+    const t2s = bad ? "감사: 빨강 — 보정해도 틀렸다 (정답 " + pp(truth.ate_averted) + "). 이 추정은 믿으면 안 된다" : `점검 1회가 고장을 막는다 (정답 ${pp(truth.ate_averted)})`;
     const pv = d.policy.by_k[String(k)];
-    const lr = pv.responsiveness.true_per100, rk = pv.risk.true_per100, rr = pv.risk_rule.true_per100, ce = pv.ceiling.true_per100, rn = pv.random.true_per100;
-    const worse = lr < rk;
-    const t3s = worse
-      ? `위험순 ${f2(rk)} · 무작위 ${f2(rn)} — 학습한 효과순이 위험순보다 나쁘다. 감사가 빨강이면 쓰지 말 것`
-      : `위험순 ${f2(rk)} → 효과순 ${f2(lr)} (${spp(lr / rk - 1, 0).replace("%p", "%")}) · 위험순+수리접수 제외 ${f2(rr)} · 상한 ${f2(ce)}`;
+    const lr = pv.responsiveness.true_per100, rk = pv.risk.true_per100;
+    const lift = lr / rk - 1, worse = lr < rk, same = !worse && lift < 0.05;
+    const t3v = (lift >= 0 ? "+" : "−") + Math.abs(lift * 100).toFixed(0) + "%";
+    const t3s = worse ? "학습한 효과순이 위험순보다 나쁘다 — 감사가 빨강이면 쓰지 말 것" : same ? "위험순과 차이가 없다 — 이 세계에서는 위험순으로 충분하다" : "같은 점검 횟수로 위험순보다 더 많이 막는다";
     put("hero",
       C.tile("① 로그만 보면", t1v, t1s, naive.averted < 0 ? "bad" : ""),
-      C.tile("② 교란을 보정하면", pp(ai.averted), t2s, bad ? "bad" : "good"),
-      C.tile(`③ 점검 100번당 막는 고장 · 학습한 효과순 (K=${k})`, f2(lr), t3s, worse ? "bad" : "good"));
+      C.tile("② 위험한 설비를 골라 점검한 것을 걷어내면", pp(ai.averted), t2s, bad ? "bad" : "good"),
+      C.tile("③ 점검을 효과 기준으로 배분하면", t3v, t3s, worse ? "bad" : same ? "" : "good"));
   }
 
   /* ------------------------------------------------------------------ 착시 */
@@ -129,23 +128,23 @@
       { label: "점검하지 않은 주", value: data.outcome_rate_control * 100, color: "var(--deemph)" },
     ], { fmt: (v) => v.toFixed(1) + "%", valueName: "4주 내 고장률", labelW: 130, label: "점검 여부별 4주 내 고장률" });
     $("ill-observed").appendChild(text("div", "sub", `점검한 주의 고장률이 ${pp(data.outcome_rate_treated - data.outcome_rate_control)} 높다 → 로그만 보면 "점검이 고장을 늘린다"는 결론이 나온다.`));
-    const rows = [
-      ["naive", "순진한 비교", "var(--series-2)"], ["regression", "회귀로 보정", "var(--series-1)"], ["ipw", "역확률가중 (IPW)", "var(--series-1)"], ["aipw", "AIPW (이중 강건)", "var(--series-1)"],
-    ].map(([k, label, color]) => ({ label, value: est[k].averted * 100, lo: est[k].averted_lo * 100, hi: est[k].averted_hi * 100, color }));
-    C.forest($("ill-forest"), rows, { fmt: (v) => (v >= 0 ? "" : "−") + Math.abs(v).toFixed(1), refs: [{ x: truth.ate_averted * 100, label: `정답 ${(truth.ate_averted * 100).toFixed(1)}` }], label: "추정 방법별 점검 1회가 막은 고장(%p)" });
+    const all = [["naive", "순진한 비교", "var(--series-2)"], ["regression", "회귀 보정", "var(--series-1)"], ["ipw", "IPW 보정", "var(--series-1)"], ["aipw", "보정 (AIPW)", "var(--series-1)"]]
+      .map(([k, label, color]) => ({ k, label, value: est[k].averted * 100, lo: est[k].averted_lo * 100, hi: est[k].averted_hi * 100, color }));
+    const fopt = { fmt: (v) => (v >= 0 ? "" : "−") + Math.abs(v).toFixed(1), refs: [{ x: truth.ate_averted * 100, label: `정답 ${(truth.ate_averted * 100).toFixed(1)}` }] };
+    C.forest($("ill-forest"), all.filter((r) => r.k === "naive" || r.k === "aipw"), { ...fopt, label: "순진한 비교와 보정한 추정의 점검 1회가 막은 고장(%p)" });
+    C.forest($("ill-forest-all"), all, { ...fopt, label: "추정 방법별 점검 1회가 막은 고장(%p)" });
     const dec = d.profile.by_risk_decile;
-    const xs = dec.map((r) => r.decile + 1);
-    C.lineChart($("ill-decile-visit"), [{ name: "점검한 비율", color: "var(--series-2)", markers: true, points: dec.map((r, i) => ({ x: xs[i], y: r.visit * 100 })) }],
-      { height: 190, y0: 0, fmtY: (v) => v.toFixed(0) + "%", fmtX: (v) => v + "분위", xTicks: 9, label: "위험 십분위별 점검 비율", table: { headers: ["위험 십분위", "점검한 비율"], rows: dec.map((r) => [r.decile + 1, pc(r.visit)]) } });
-    C.lineChart($("ill-decile-y"), [{ name: "4주 내 고장률", color: "var(--text-secondary)", markers: true, points: dec.map((r, i) => ({ x: xs[i], y: r.y * 100 })) }],
-      { height: 190, y0: 0, fmtY: (v) => v.toFixed(0) + "%", fmtX: (v) => v + "분위", xTicks: 9, label: "위험 십분위별 고장률", table: { headers: ["위험 십분위", "4주 내 고장률"], rows: dec.map((r) => [r.decile + 1, pc(r.y)]) } });
+    C.lineChart($("ill-why"), [
+      { name: "점검한 비율", color: "var(--series-2)", markers: true, points: dec.map((r) => ({ x: r.decile + 1, y: r.visit * 100 })) },
+      { name: "4주 내 고장률", color: "var(--text-secondary)", markers: true, points: dec.map((r) => ({ x: r.decile + 1, y: r.y * 100 })) },
+    ], { height: 220, y0: 0, fmtY: (v) => v.toFixed(0) + "%", fmtX: (v) => String(v), xTicks: 9, label: "위험 십분위별 점검 비율과 고장률", table: { headers: ["위험 십분위", "점검한 비율", "4주 내 고장률"], rows: dec.map((r) => [r.decile + 1, pc(r.visit), pc(r.y)]) } });
     const note = $("ill-note"); note.className = "callout";
     const lines = [];
     if (d.id === "hunch") {
-      lines.push(["b", "이 세계에서는 보정도 틀립니다. "], ["t", `점검자가 기록에 없는 신호를 보고 점검 대상을 정해서, 기록된 변수로 보정해도 점검 1회가 ${pp(est.aipw.averted)} 막는다고 나옵니다(정답 ${pp(truth.ate_averted)}). '믿어도 되나' 탭의 감사가 이것을 잡아내는지 보세요.`]);
+      lines.push(["b", "이 세계에서는 보정도 틀립니다. "], ["t", `점검자가 기록에 없는 신호를 보고 점검 대상을 정해서, 기록된 변수로 보정해도 점검 1회가 ${pp(est.aipw.averted)} 막는다고 나옵니다(정답 ${pp(truth.ate_averted)}). '믿어도 되나' 탭에서 감사가 이것을 잡아내는지 보세요.`]);
       note.classList.add("warn");
     } else if (d.id === "flat") {
-      lines.push(["b", "설비별 반응 차이가 없는 세계입니다. "], ["t", `점검 1회가 평균 ${pp(truth.ate_averted)} 막고 설비 종류와 수리 접수 여부가 효과를 바꾸지 않습니다. 이 세계에서는 위험순이 충분히 좋아야 하고 — '누구에게' 탭에서 확인하세요.`]);
+      lines.push(["b", "설비별 반응 차이가 없는 세계입니다. "], ["t", `점검 1회가 평균 ${pp(truth.ate_averted)} 막고 설비 종류와 수리 접수 여부가 효과를 바꾸지 않습니다. 이 세계에서는 위험순이 충분히 좋아야 하고 — '어디에 점검할까' 탭에서 확인하세요.`]);
     } else {
       lines.push(["b", "착시는 보정으로 걷힙니다. "], ["t", `로그를 그대로 비교하면 점검한 쪽이 ${pp(Math.abs(est.naive.averted))} 더 고장나지만, 기록된 변수로 보정하면 점검 1회가 ${pp(est.aipw.averted)} 막는 것으로 추정되고 정답(${pp(truth.ate_averted)})이 95% 구간 안에 있습니다. 단 이 추정은 "기록 밖의 교란이 없다"는 가정 위에 서 있습니다.`]);
     }
@@ -155,14 +154,15 @@
   /* ------------------------------------------------------------------ 누구에게 */
   const SHORT = { random: "무작위", round_robin: "라운드로빈 (오래된 순)", risk: "위험순", risk_rule: "위험순 + 수리접수 제외", responsiveness: "효과순 (반응도 모형)", responsiveness_rule: "효과순 + 수리접수 제외", dr_gbm: "효과순 (DR-learner)", t_learner: "효과순 (T-learner)", dragonnet: "효과순 (DragonNet)", ceiling: "상한 (관측 변수의 한계)", oracle: "오라클 (손상까지 앎)" };
   const POLICY_ORDER = [["random", "base"], ["round_robin", "base"], ["risk", "risk"], ["risk_rule", "risk"], ["responsiveness", "ours"], ["responsiveness_rule", "ours"], ["dr_gbm", "other"], ["t_learner", "other"], ["dragonnet", "other"], ["ceiling", "ref"], ["oracle", "ref"]];
+  const FRONT_POLICIES = new Set(["random", "risk", "risk_rule", "responsiveness"]);
   function renderWho() {
     const d = S.d, k = +$("who-k").value, pv = d.policy.by_k[String(k)], ci = k === d.policy.k ? d.policy.ci : null;
-    const rows = POLICY_ORDER.filter(([key]) => pv[key]).map(([key, tone]) => {
+    const showAll = $("who-ope").checked;
+    const rows = POLICY_ORDER.filter(([key]) => pv[key] && (showAll || FRONT_POLICIES.has(key))).map(([key, tone]) => {
       const r = pv[key], c = ci && ci[key];
-      const showCi = $("who-ope").checked;
-      return { label: SHORT[key] || d.policy.labels[key] || key, value: r.true_per100, lo: c ? c.true_lo : undefined, hi: c ? c.true_hi : undefined, ope: r.ope_per100, opeLo: c && showCi ? c.ope_lo : undefined, opeHi: c && showCi ? c.ope_hi : undefined, tone };
+      return { label: SHORT[key] || d.policy.labels[key] || key, value: r.true_per100, lo: c ? c.true_lo : undefined, hi: c ? c.true_hi : undefined, ope: showAll ? r.ope_per100 : undefined, opeLo: c && showAll ? c.ope_lo : undefined, opeHi: c && showAll ? c.ope_hi : undefined, tone };
     });
-    $("who-sub").textContent = `평가 구간 ${d.policy.test_weeks[0]}~${d.policy.test_weeks[1]}주 · 사이트·주 ${d.policy.n_groups.toLocaleString("ko-KR")}묶음 · K=${k}.` + (ci ? " 막대 수염 = 사이트·주 부트스트랩 95% 구간." : " (구간은 기본 K 에서만 계산됩니다)");
+    $("who-sub").textContent = `평가 구간 ${d.policy.test_weeks[0]}~${d.policy.test_weeks[1]}주 · 사이트·주 ${d.policy.n_groups.toLocaleString("ko-KR")}묶음 · K=${k}.` + (ci ? " 막대 끝 선 = 95% 구간." : "") + (showAll ? "" : " 위의 체크를 켜면 모든 정책이 보입니다.");
     C.policyBars($("who-policy"), rows, { label: "정책별 점검 100번당 막는 고장" });
     renderScatter();
     renderCategory();

@@ -50,6 +50,18 @@ nav.tabs { display: flex; gap: 2px; padding: 0 16px; border-bottom: 1px solid va
 nav.tabs button { font: inherit; background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; color: var(--text-secondary); cursor: pointer; white-space: nowrap; }
 nav.tabs button:hover { color: var(--text-primary); }
 nav.tabs button[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--series-1); font-weight: 600; }
+nav.tabs button .n { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-right: 7px; border-radius: 50%; border: 1px solid var(--axis); font-size: 11px; font-weight: 600; line-height: 1; }
+nav.tabs button[aria-selected="true"] .n { background: var(--series-1); border-color: var(--series-1); color: #fff; }
+nav.tabs .tabsep { flex: 1; min-width: 12px; }
+nav.tabs button.minor { font-size: 13px; color: var(--muted); }
+nav.tabs button.minor[aria-selected="true"] { color: var(--text-primary); }
+/* 접이식 "더 자세히" — 앞면을 가볍게 두고 깊이는 열면 나온다 */
+details.more { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-1); }
+details.more > summary { cursor: pointer; padding: 11px 16px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+details.more > summary:hover { color: var(--text-primary); }
+details.more[open] > summary { border-bottom: 1px solid var(--border); }
+details.more > :not(summary) { margin: 14px 16px; }
+details.more .card { background: var(--page); }
 main { padding: 16px; max-width: 1280px; margin: 0 auto; }
 footer { max-width: 1280px; margin: 8px auto 40px; padding: 0 16px; color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
 section.tab[hidden] { display: none; }

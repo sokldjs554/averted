@@ -421,7 +421,7 @@
     });
     container.appendChild(shapeLegend([
       { shape: "rect", color: "var(--series-1)", label: "점검 100번당 막는 고장 — 정답 기준" },
-      { shape: "diamond", color: "var(--text-primary)", label: "로그만으로 추정한 값(OPE)" },
+      ...(rows.some((r) => r.ope != null) ? [{ shape: "diamond", color: "var(--text-primary)", label: "로그만으로 추정한 값(OPE)" }] : []),
     ]));
     container.appendChild(svg);
     tableView(container, ["정책", "정답 기준", "95% 구간", "OPE", "OPE 구간"], rows.map((r) => [r.label, r.value.toFixed(2), r.lo != null ? `${fmtN(r.lo, 2)} ~ ${fmtN(r.hi, 2)}` : "–", r.ope != null ? fmtN(r.ope, 2) : "–", r.opeLo != null ? `${fmtN(r.opeLo, 1)} ~ ${fmtN(r.opeHi, 1)}` : "–"]));
