@@ -122,7 +122,7 @@ def prepare(
     validate(log, spec)
     keep = log[spec.outcome].notna().to_numpy()
     if drop_due and spec.due and spec.due in log.columns:
-        keep &= ~log[spec.due].to_numpy(dtype=bool)
+        keep = keep & ~log[spec.due].to_numpy(dtype=bool)
     sub = log.loc[keep]
     X, names = design_matrix(sub, spec, include_site=include_site, n_sites=n_sites)
     site = sub[spec.site].to_numpy() if spec.site else np.zeros(len(sub), dtype=int)

@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import pandas as pd
 import pytest
 
 from averted.sim.generate import simulate
 from averted.sim.world import WorldConfig
+
+# pandas 3 는 Copy-on-Write 가 기본이라 to_numpy() 가 읽기 전용 배열을 돌려준다.
+# 로컬 pandas 2.x 에서도 같은 조건으로 시험해 그 차이가 CI 에서야 드러나지 않게 한다.
+pd.options.mode.copy_on_write = True
 
 
 @pytest.fixture(scope="session")
